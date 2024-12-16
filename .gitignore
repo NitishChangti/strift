@@ -121,4 +121,4 @@ dist
 
 .env
 
-git rm --cached .env
+rm --cached .env
