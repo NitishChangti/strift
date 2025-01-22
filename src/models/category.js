@@ -5,6 +5,10 @@ const subCategorySchema = new Schema({
         type: String,
         required: true
     },
+    TagId: {
+        type: String,
+        required: true
+    },
     description: {
         type: String,
         required: true
@@ -14,6 +18,18 @@ const subCategory = mongoose.model('SubCategory', subCategorySchema)
 
 const categorySchema = new Schema({
     name: {
+        type: String,
+        required: true
+    },
+    createdBy: {
+        type: String,
+        required: true
+    },
+    TagId: {
+        type: String,
+        required: true
+    },
+    CategoryThumbnail: {
         type: String,
         required: true
     },
@@ -27,7 +43,11 @@ const categorySchema = new Schema({
         {
             name: {
                 type: String,
-                required: true
+                // required: true
+            },
+            TagId: {
+                type: String,
+                // required: true
             },
             description: {
                 type: String

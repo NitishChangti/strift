@@ -1,57 +1,61 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { User } from "../../models/user.models.js";
-import { ApiError } from "../../utils/apiError.js";
+import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiRes.js";
 import { Category } from "../../models/category.js";
 import mongoose from "mongoose";
+import { uploadOnCloudinaryForCategory } from '../../utils/cloudinary.js';
 
 const createCategory = asyncHandler(async (req, res) => {
     try {
-        // console.log(req.cookies)
-        const cat = await Category.findOne({ name: req.body.name })
-        // console.log('cat', cat)
+        console.log('req body of category create', req.body)
+        const { categoryName, createdBy, TagId, description } = req.body;
+        console.log('categoryName', categoryName)
+        console.log('createdBy', createdBy)
+        console.log('TagId', TagId)
+        console.log('description', description)
+        console.log('req of files', req.file)
+        const cat = await Category.findOne(
+            {
+                $or: [
+                    { name: req.body.categoryName },
+                    { TagId: TagId }
+                ]
+            }
+        );
+        console.log('cat', cat)
         if (cat) {
             console.log("cat exists already")
-            const subCatExists = cat.subCategories.some(subCat => req.body.subCategory.includes(subCat.name))
-            if (subCatExists) {
-                console.log('sub cat already exists')
-                return res.status(409).json(
-                    new ApiResponse(
-                        409,
-                        { cat },
-                        'sub category is already exists in db'
-                    )
-                )
-            }
-            console.log("Sub-category doesn't exist, adding it...");
-            console.log('sub-categories', cat.subCategories)
-
-            cat.subCategories.push({
-                name: req.body.subCategory
-            }); // Add new sub-category
-            await cat.save(); // Save the updated category
             return res.status(200).json(
                 new ApiResponse(
                     200,
                     { cat },
-                    'New subcategories added successfully to existing category.'
+                    'Category Already exists in a Db.'
                 )
             )
-        } else {
-
-            // let subCategories = Array.isArray(req.body.subCategory)?.req.body.subCategory
-            const category = new Category({
-                name: req.body.name,
-                subCategories: [{ name: req.body.subCategory }],
-                description: req.body.description
-            })
-            await category.save()
-            return res.status(200).json(new ApiResponse(
-                200,
-                { category },
-                "category created successfully",
-            ))
         }
+        const image = req.file ? req.file : null;
+        console.log('image before save in cloudinary', image)
+        const categoryImage = await uploadOnCloudinaryForCategory(image);
+        console.log("productImage after saved in cloudinary", categoryImage)
+        console.log(categoryName, createdBy, TagId, description)
+        const category = new Category({
+            name: categoryName,
+            createdBy: createdBy,
+            TagId: TagId,
+            CategoryThumbnail: categoryImage.url,
+            description: description
+        })
+
+        const data = await category.save()
+        console.log(data, 'category', category)
+
+        return res.status(200).json(new ApiResponse(
+            200,
+            { category },
+            "category created successfully",
+            true
+        ))
     }
     catch (err) {
         res.status(400).json(new ApiError(
@@ -89,6 +93,7 @@ const getAllCategory = asyncHandler(async (req, res) => {
         });
     }
 })
+
 
 const getSingleCategory = asyncHandler(async (req, res) => {
     try {
@@ -288,11 +293,61 @@ const searchCategory = asyncHandler(async (req, res) => {
     }
 })
 
+
+const createSubCategory = asyncHandler(async (req, res) => {
+    try {
+        console.log('sub category')
+        const { categoryTagId, subCategoryName, description, TagId } = req.body;
+        console.log(typeof categoryTagId)
+        const category = await Category.findOne({
+            TagId: categoryTagId,
+        });
+        console.log('category', category)
+        if (!category) {
+            return res.status(400).json(new ApiError(
+                400,
+                null,
+                "Category not found"
+            ))
+        }
+        const subCategory = category.subCategories.find(subCat => subCat.name === subCategoryName && subCat.TagId === TagId);
+        if (subCategory) {
+            return res.status(400).json(new ApiError(
+                400,
+                null,
+                "Subcategory already exists"
+            ));
+        }
+
+        category.subCategories.push({
+            name: subCategoryName,
+            TagId: TagId,
+            description: description
+        });
+
+        await category.save();
+
+        return res.status(200).json(new ApiResponse(
+            200,
+            category,
+            "Subcategory created successfully"
+        ));
+    }
+    catch (error) {
+        console.log(error)
+        return res.status(500).json(new ApiResponse(
+            500,
+            null,
+            "An error occurred while creating sub category"
+        ))
+    }
+});
 export {
     createCategory,
     getAllCategory,
     getSingleCategory,
     updateCategory,
     deleteCategory,
-    searchCategory
+    searchCategory,
+    createSubCategory
 }

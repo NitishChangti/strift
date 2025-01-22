@@ -30,7 +30,7 @@ const addressesSchema = new Schema({
         trim: true,
         default: ""
     },
-    pincode: {
+    pinCode: {
         type: String,
         required: true,
         lowercase: true,
@@ -44,6 +44,33 @@ const addressesSchema = new Schema({
         trim: true,
         index: true,
         default: ""
+    },
+    locality: {
+        type: String,
+        required: true,
+        lowercase: true,
+        trim: true,
+        default: ""
+    },
+    landmark: {
+        type: String,
+        required: true,
+        lowercase: true,
+        trim: true,
+        default: ""
+    },
+    alternatePhoneNumber: {
+        type: String,
+        required: false,
+        lowercase: true,
+        trim: true,
+        default: ""
+    },
+    addressType: {
+        type: String,
+        required: true,
+        // enum: ['Residential', 'Commercial'],
+        default: ''
     },
     updatedAt: {
         type: Date,
@@ -169,9 +196,85 @@ const userSchema = new Schema({
         type: String,    //cloudinary url
     },
     address: [
+        // {
+        //     type: Schema.Types.ObjectId,
+        //     ref: Address
+        // }
         {
-            type: Schema.Types.ObjectId,
-            ref: Address
+            name: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                index: true,
+                default: ""
+            },
+            address: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                default: ""
+            },
+            city: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                default: ""
+            },
+            state: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                default: ""
+            },
+            pinCode: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                default: ""
+            },
+            phoneNumber: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                index: true,
+                default: ""
+            },
+            locality: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                default: ""
+            },
+            landmark: {
+                type: String,
+                required: true,
+                lowercase: true,
+                trim: true,
+                default: ""
+            },
+            alternatePhoneNumber: {
+                type: String,
+                required: false,
+                lowercase: true,
+                trim: true,
+                default: ""
+            },
+            addressType: {
+                type: String,
+                required: true,
+                default: ''
+            },
+            updatedAt: {
+                type: Date,
+                default: Date.now
+            }
         }
     ],
 
@@ -181,4 +284,4 @@ const userSchema = new Schema({
 const User = mongoose.model('User', userSchema)
 
 
-export { User }
+export { User, Address }

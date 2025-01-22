@@ -26,12 +26,12 @@ app.use(session({
     },
 }));
 
-import UserRouter from './routes/user.routes.js';
+import UserRouter from './routes/user/user.routes.js';
 app.use("", UserRouter)
 
 import categoryrouter from './routes/admin/category.routes.js'
-app.use(categoryrouter)
+app.use("/admin", categoryrouter)
 
 import productrouter from './routes/admin/product.routes.js'
-app.use(productrouter)
+app.use('/admin', productrouter)
 export { app }

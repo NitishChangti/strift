@@ -24,7 +24,7 @@ const productSchema = new Schema(
             type: String
         }],
         price: {
-            type: Number,
+            type: String,
             require: true,
             min: 0
         },
@@ -32,12 +32,57 @@ const productSchema = new Schema(
             type: Number,
             require: true,
             min: 0
+        },
+        ratings: {
+            type: Number,
+            require: true,
+        },
+        reviews: [
+            {
+                userId: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'User'
+                },
+                comment: {
+                    type: String,
+                    require: true
+                },
+                ratings: {
+                    type: Number,
+                    require: true
+                },
+                date: {
+                    type: Date,
+                    default: Date.now
+                }
+            }
+        ],
+        variants: [
+            {
+                size: {
+                    type: String,
+                    require: true
+                },
+                color: {
+                    type: String,
+                    require: true
+                },
+                stock: {
+                    type: Number,
+                    require: true
+                }
+            }
+        ],
+        productDetails: {
+            type: Schema.Types.Mixed, // Allows dynamic key-value pairs (flexible structure)
         }
     },
     {
         timestamps: true
     }
 )
+
+
 
 const product = mongoose.model("product", productSchema)
 

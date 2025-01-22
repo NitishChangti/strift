@@ -536,7 +536,7 @@ registerOtpVerification.addEventListener('submit', async (e) => {
 })
 
 
-registerOtpResend.addEventListener('click', async (Event) => {
+registerOtpResend.addEventListener('click', async (event) => {
     if (!isTimerRunning) {
         await startCountdownTimerReg(60);
         const currentTime = new Date()
