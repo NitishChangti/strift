@@ -523,8 +523,8 @@
             </div>
 
             <!-- General Information Form -->
-            <form id="createCategoryForm" method="post" action="/admin/dashboard/createcategory"
-              enctype="multipart/form-data">
+            <form id="createCategoryForm" method="post" action="" enctype="multipart/form-data">
+              <input type="hidden" id="formMode" name="formMode" value="create" />
               <div class="thumbnail-cat-container" onclick="document.getElementById('thumbnailInput').click()">
                 <p>
                   Drop your images here, or
@@ -572,28 +572,32 @@
           </div>
         </div>
       </div>
+      <div id="edit-category" class="section">
+        <h1>hello</h1>
+      </div>
     </section>
   </div>
-  <div class="subCategoryForm" id="subCatForm" style="display: none;">
+  <div class="subCategoryForm" id="subCatForm">
     <form action="/admin/dashboard/createsubcategory" method="post">
       <h2>Sub Category Form</h2>
       <div>
         <label>Sub Category Name</label>
-        <input style="width:300px;" type="text" placeholder="Enter sub category name" name="subCategoryName" required />
+        <input style="width:300px;" type="text" placeholder="Enter sub category name" class="subCategoryName"
+          name="subCategoryName" required />
       </div>
       <div>
         <label>TagId</label>
-        <input style="width:300px;" type="text" placeholder="Enter Tag Id" name="tagId" required />
+        <input style="width:300px;" type="text" placeholder="Enter Tag Id" class="tagId" name="tagId" required />
       </div>
       <div>
         <label>Main Category TagId</label>
-        <input style="width:300px;" type="text" placeholder="Enter Main Category TagId" name="mainCategoryTagId"
-          id="mainCategoryTagId" required readonly />
+        <input style="width:300px;" type="text" placeholder="Enter Main Category TagId" class="mainCategoryTagId"
+          name="mainCategoryTagId" id="mainCategoryTagId" required readonly />
       </div>
       <div>
         <label>Description</label>
-        <textarea style="width:300px;" placeholder="Short description about the category" rows="4" name="description"
-          required></textarea>
+        <textarea style="width:300px;" placeholder="Short description about the category" rows="4"
+          name="description"></textarea>
       </div>
       <div class="form-buttons">
         <button type="button" class="btn btn-danger"> Cancel</button>

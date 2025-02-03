@@ -267,8 +267,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Step 1: Define the route to section mapping
   const routes = {
     "/admin/dashboard/category-lists": "#category-list",        // Maps to the Home section
-    "/admin/dashboard/category-edit": "#subcategory-container",  // Maps to the Settings section
+    // "/admin/dashboard/category-edit": "#subcategory-container",  // Maps to the Settings section
     "/admin/dashboard/category-create": "#create-category",   // Maps to the Profile section
+    "/admin/dashboard/category-edit": "#category-edit"
   };
 
   const sections = document.querySelectorAll(".section");
@@ -286,6 +287,15 @@ document.addEventListener("DOMContentLoaded", () => {
       showMainCategory()
     }
     else if (routes[route] === "#create-category") {
+      document.querySelector("#create-category").style.display = "block";
+      document.querySelector("#create-category .main-content").style.display = "block";
+      document.querySelector("#create-category .main-content .section").style.display = "block";
+      document.querySelector("#create-category .main-content #createCategoryForm .section").style.display = "block";
+
+    }
+    else if (routes[route] === "#category-edit") {
+      console.log('heo')
+      document.querySelector("#edit-category").style.display = "block";
       document.querySelector("#create-category").style.display = "block";
       document.querySelector("#create-category .main-content").style.display = "block";
       document.querySelector("#create-category .main-content .section").style.display = "block";
@@ -489,17 +499,18 @@ async function showMainCategory() {
   const categoryBoxes = document.querySelectorAll(".category-box");
   const subcategoryContainer = document.getElementById("subcategory-container");
   const subcategoryList = document.getElementById("subcategory-list");
-
+  let selectedCategory;
   categoryBoxes.forEach((box, index) => {
     box.addEventListener("click", () => {
       console.log('clicked', index)
       console.log('box is', box.querySelector('p ~p').textContent)
       mainCategoryTagId = box.querySelector('p ~p').textContent
-
-      const selectedCategory = categoriesData[index];
+      console.log(mainCategoryTagId)
+      selectedCategory = categoriesData[index];
       subcategoryContainer.style.display = "block";
       subcategoryList.innerHTML = "";
       // console.log(selected_Category_value)
+      console.log("subCategory", selectedCategory)
 
       selectedCategory.subCategories.forEach((subCategory) => {
         const row = document.createElement("tr");
@@ -515,8 +526,177 @@ async function showMainCategory() {
         subcategoryList.appendChild(row);
       });
 
+      editMainCategory(selectedCategory)
     });
+    // console.log(selectedCategory)
   });
+
+  // edit main category event
+  function editMainCategory(selectedCategory) {
+    document.querySelector('#category-list span h2 ~ button').addEventListener('click', (e) => {
+      // document.querySelector('#create-category').style.display = 'flex'
+      document.querySelector("#create-category").style.display = "block";
+      document.querySelector("#create-category .main-content").style.display = "block";
+      document.querySelector("#create-category .main-content .section").style.display = "block";
+      document.querySelector("#create-category .main-content #createCategoryForm .section").style.display = "block";
+      document.querySelector("#create-category")
+      const createCategorySection = document.querySelector("#create-category");
+      createCategorySection.style.position = "absolute";
+      createCategorySection.style.top = "100px";
+      createCategorySection.style.zIndex = "1000";
+      console.log('click for edit btn main category', selectedCategory.name)
+
+      //assigning  a value to the input field of form main category
+      document.getElementById('categoryTitle').value = selectedCategory.name;
+      document.getElementById('createdBy').value = selectedCategory.createdBy;
+      document.getElementById('tagID').value = selectedCategory.TagId;
+      document.getElementById('description').value = selectedCategory.description;
+
+      // Set thumbnail preview if available
+      if (selectedCategory.CategoryThumbnail) {
+        const thumbnailContainer = document.querySelector('#categoryThumbnail');
+        const thumbnailInput = document.querySelector('#thumbnailInput');
+        thumbnailInput.removeAttribute('required')
+        document.querySelector('#formMode').value = 'edit';
+
+        // const img = document.createElement('img');
+        // img.src = selectedCategory.CategoryThumbnail;
+        // img.style.maxWidth = '100%';
+        // img.style.marginTop = '10px';
+        // thumbnailContainer.appendChild(img);
+        thumbnailContainer.src = selectedCategory.CategoryThumbnail;
+        console.log(thumbnailContainer.src)
+      }
+
+    })
+
+    //create category form logic to send data to server and receive response
+    const createCategoryForm = document.querySelector('#createCategoryForm');
+    createCategoryForm.children[0].action = `/admin/dashboard/updatecategory`
+    // createCategoryForm.addEventListener('submit', async (e) => {
+    //   e.preventDefault();
+    //   // let url = '/admin/dashboard/createcategory'
+    //   // Validate form fields
+    //   const categoryName = createCategoryForm.categoryTitle.value;
+    //   const createdBy = createCategoryForm.createdBy.value;
+    //   const description = createCategoryForm.description.value;
+    //   const TagId = createCategoryForm.tagId.value;
+    //   // const file = createCategoryForm.get('categoryThumbnail'); // Retrieve the image file from FormData
+    //   // const fileInput = createCategoryForm.querySelector('input[name="image"]'); // Get the file input element
+    //   const cat_existing_thumbnail_for_edit = document.querySelector('#categoryThumbnail')
+    //   // console.log(cat_existing_thumbnail_for_edit.children[0].src)
+    //   const fileInput = createCategoryForm.querySelector('#thumbnailInput'); // Get the file input element
+    //   console.log('fileInput is', fileInput)
+    //   const formData = new FormData();
+    //   if (fileInput) {
+    //     console.log(fileInput)
+    //     const file = fileInput.files[0]; // Retrieve the selected file from the file input
+    //     console.log(file)
+
+    //     // Create a FormData object
+    //     // thumbnailContainer.children[0].src
+    //     // Check if a file is selected
+    //     if (file) {
+    //       formData.append('image', file)
+    //       console.log('Image Selected:', file.name);
+    //       console.log('File Name:', file.name);
+    //       console.log('File Size:', file.size, 'bytes');
+    //       console.log('File Type:', file.type);
+    //     } else {
+    //       alert('Category thumbnail is required.');
+    //       console.log('No image file selected');
+    //     }
+
+    //   }
+    //   // else {
+    //   //   if (cat_existing_thumbnail_for_edit != undefined) {
+    //   //     url = '/admin/dashboard/updatecategory'
+    //   //     console.log('cat_existing_thumbnail_for_edit is appended into a formData object')
+    //   //     formData.append('image', cat_existing_thumbnail_for_edit.src)
+    //   //   }
+    //   //   else {
+    //   //     console.log('cat_existing_thumbnail_for_edit is undefined')
+    //   //   }
+    //   // }
+    //   if (categoryName && categoryName.trim() !== '' && typeof categoryName === 'string' && categoryName.length > 0) {
+    //     formData.append('categoryName', categoryName)
+    //     console.log("category name is appended into formData object")
+    //   } else {
+    //     alert('Category name is required.');
+    //     return;
+    //   }
+
+    //   if (createdBy && createdBy.trim() !== '' && typeof createdBy === 'string' && createdBy.length > 0) {
+    //     formData.append('createdBy', createdBy)
+    //     console.log("createdBy is appended into formData object")
+    //   }
+    //   else {
+    //     alert('Created By is required.');
+    //     return;
+    //   }
+    //   if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
+    //     formData.append('description', description)
+    //     console.log("description is appended into formData object")
+    //   }
+    //   else {
+    //     alert('Description is required.');
+    //     return;
+    //   }
+    //   if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length > 0) {
+    //     formData.append('TagId', TagId)
+    //     console.log("TagId is appended into formData object")
+    //   }
+    //   else {
+    //     alert('TagId is required.');
+    //     return;
+    //   }
+    //   // console.log('formData', formData)
+    //   // Log formData correctly
+    //   for (let [key, value] of formData.entries()) {
+    //     console.log(`${key}:`, value);
+    //   }
+
+    //   try {
+    //     // console.log(url)
+    //     const response = await fetch('/admin/dashboard/updatecategory', {
+    //       method: 'POST',
+    //       body: formData,
+    //     });
+
+    //     if (response.ok) {
+    //       const data = await response.json();
+    //       console.log(`Category updated successfully!`, data);
+    //       // resetForm();
+    //       if (data.data) {
+    //         // console.log(data.message)
+    //         alert(`${data.message}`);
+    //         console.log('Category created successfully!');
+    //         // resetForm();
+    //         // showCategory('category-list')
+    //         window.location.href = 'http://localhost:3500/admin/dashboard/category-lists'
+    //         console.log(window.location.href)
+    //       }
+    //       else {
+    //         alert('Failed to create category. Please try again.');
+    //       }
+    //     } else {
+    //       // alert('Failed to create category. Please try again.');
+    //       const errorData = await response.json(); // Parse the error response
+
+    //       console.error('Error:', errorData); // Log error details
+
+    //       alert(`Error uploading image: ${errorData.error || 'Unknown error'}`); // Notify the users
+    //     }
+    //   } catch (error) {
+    //     console.error('Error:', error);
+    //     alert('An error occurred. Please try again.');
+    //   }
+    // })
+
+
+  }
+
+
   //
   const sCb = document.querySelector('#subcategory-list')
   // document.querySelector('.subCategoryForm').style.display = 'flex'
@@ -531,7 +711,7 @@ async function showMainCategory() {
     if (clickedRow) {
       // Perform actions based on the clicked element's class
       if (event.target.classList.contains("edit")) {
-        subCategoryEditAction(clickedRow);
+        subCategoryEditAction(clickedRow, mainCategoryTagId);
         console.log("Edit button clicked", clickedRow);
 
         // Perform actions for the "Edit" button
@@ -552,22 +732,7 @@ async function showMainCategory() {
   //   console.log('not worked')
   // }
 
-  function subCategoryEditAction(clickedRow) {
-    console.log('Edit button clicked');
 
-    // Get the container element and set its display property
-    const subCategoryForm = document.querySelector('.subCategoryForm');
-
-    // Check if the form is found
-    if (!subCategoryForm) {
-      console.error('SubCategory form not found!');
-      return; // Exit the function if the form is not found
-    }
-
-    // Set the form to be visible
-    // subCategoryForm.style.display = 'flex'; // Show the form
-    console.log('SubCategory Form display set to flex', subCategoryForm.style.display);
-  }
 
   //
   // console.log(document.querySelector('#subcategory-list td .action-btn'))
@@ -588,102 +753,211 @@ async function showMainCategory() {
   // Close subCategoryForm when clicking outside of it
   document.addEventListener('click', (event) => {
     const subCategoryForm = document.querySelector('.subCategoryForm');
-    if (!subCategoryForm.contains(event.target) && !createSubCategorybtn.contains(event.target)) {
-      event.stopPropagation();
-      subCategoryForm.style.display = 'none';
-      // document.querySelector('.subCategoryForm').classList.add('subCatFormRemove')
-      // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+    // if (!subCategoryForm.contains(event.target) && !createSubCategorybtn.contains(event.target)) {
+    //   event.stopPropagation();
+    //   subCategoryForm.style.display = 'none ';
+    //   // document.querySelector('.subCategoryForm').classList.add('subCatFormRemove')
+    //   // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
 
-    }
+    // }
+    document.querySelector('.subCategoryForm form .form-buttons .btn-danger').addEventListener('click', (event) => {
+      console.log('cancel button')
+      subCategoryForm.style.display = 'none ';
+    })
   });
-};
 
+};
+function subCategoryEditAction(clickedRow, mainCategoryTagId) {
+  console.log('Edit button clicked');
+
+  // Get the container element and set its display property
+  const subCategoryForm = document.querySelector('.subCategoryForm');
+
+  // Check if the form is found
+  if (!subCategoryForm) {
+    console.error('SubCategory form not found!');
+    return; // Exit the function if the form is not found
+  }
+
+
+  // Set the form's display property to 'flex'
+  subCategoryForm.style.display = 'flex';
+  // console.log(clickedRow.children)
+  // console.log(clickedRow.children[0].innerHTML)
+  // console.log(clickedRow.children[1].innerHTML)
+  // console.log(mainCategoryTagId)
+  document.querySelector('.subCategoryForm form ').subCategoryName.value = clickedRow.children[0].innerHTML
+  document.querySelector('.subCategoryForm form ').tagId.value = clickedRow.children[1].innerHTML
+  document.querySelector('.subCategoryForm form').mainCategoryTagId.value = mainCategoryTagId
+  subCategoryForm.children[0].action = `/admin/updatecategory`
+  console.log(subCategoryForm.children[0].action)
+  // console.log(subCategoryForm)
+  subCategoryForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = {};
+    const subCategoryName = document.querySelector('.subCategoryForm form ').subCategoryName.value;
+    console.log(subCategoryName, document.querySelector('.subCategoryForm form ').subCategoryName.value)
+    // const subCategoryCreatedBy = subCategoryForm.subCategoryCreatedBy.value;
+    const description = document.querySelector('.subCategoryForm form ').description.value;
+    const categoryTagId = document.querySelector('.subCategoryForm form ').mainCategoryTagId.value;
+    const TagId = document.querySelector('.subCategoryForm form ').tagId.value;
+    console.log(TagId)
+    if (categoryTagId && categoryTagId.trim() !== '' && typeof categoryTagId === 'string' && categoryTagId.length > 0) {
+      console.log('Category TagId:', categoryTagId);
+      formData.categoryTagId = categoryTagId;
+    }
+
+    if (subCategoryName && subCategoryName.trim() !== '' && typeof subCategoryName === 'string' && subCategoryName.length > 0) {
+      console.log('Sub Category Name:', subCategoryName);
+      formData.subCategoryName = subCategoryName;
+    }
+    else {
+      alert('Sub Category name is required.');
+      return;
+    }
+    if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
+      console.log('Description:', description);
+      formData.description = description;
+    }
+    else {
+      alert('Description is required.');
+      return;
+    }
+    if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length <= 10) {
+      console.log('TagId:', TagId);
+      formData.TagId = TagId;
+    }
+    else {
+      alert('TagId is required.');
+      return;
+    }
+    console.log('formData', formData)
+    try {
+      const response = await fetch(`/admin/updatesubcategory`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Sub Category Added Successfully', data);
+        alert('Sub Category Added Successfully');
+        // subCategoryForm.style.display = 'none'
+        // document.querySelector('.subCategoryForm').style.display = 'none'
+        // document.querySelector('.subCategoryForm').style.hidden = true
+        document.querySelector('.subCategoryForm').style.display = 'none'
+
+
+        // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+      }
+      else {
+        const data = await response.json();
+        console.log('Error while adding sub category', data);
+        alert('Failed to add sub category something went wrong or sub category already exists in db');
+        subCategoryForm.style.display = 'none';
+        // document.querySelector('.subCategoryForm').style.hidden = true
+        // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+      }
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred in sub Category form while sending data or receiving data from server . Please try again.');
+    }
+  })
+}
 // sub category form logic to send data to server and receive response
 const subCategoryForm = document.querySelector('.subCategoryForm form');
 // console.log(subCategoryForm)
-subCategoryForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = {};
-  const subCategoryName = subCategoryForm.subCategoryName.value;
-  // const subCategoryCreatedBy = subCategoryForm.subCategoryCreatedBy.value;
-  const description = subCategoryForm.description.value;
-  const categoryTagId = subCategoryForm.mainCategoryTagId.value;
-  const TagId = subCategoryForm.tagId.value;
-  console.log(TagId)
-  if (categoryTagId && categoryTagId.trim() !== '' && typeof categoryTagId === 'string' && categoryTagId.length > 0) {
-    console.log('Category TagId:', categoryTagId);
-    formData.categoryTagId = categoryTagId;
-  }
+// subCategoryForm.addEventListener('submit', async (e) => {
+//   e.preventDefault();
+//   const formData = {};
+//   const subCategoryName = subCategoryForm.subCategoryName.value;
+//   // const subCategoryCreatedBy = subCategoryForm.subCategoryCreatedBy.value;
+//   const description = subCategoryForm.description.value;
+//   const categoryTagId = subCategoryForm.mainCategoryTagId.value;
+//   const TagId = subCategoryForm.tagId.value;
+//   console.log(TagId)
+//   if (categoryTagId && categoryTagId.trim() !== '' && typeof categoryTagId === 'string' && categoryTagId.length > 0) {
+//     console.log('Category TagId:', categoryTagId);
+//     formData.categoryTagId = categoryTagId;
+//   }
 
-  if (subCategoryName && subCategoryName.trim() !== '' && typeof subCategoryName === 'string' && subCategoryName.length > 0) {
-    console.log('Sub Category Name:', subCategoryName);
-    formData.subCategoryName = subCategoryName;
-  }
-  else {
-    alert('Sub Category name is required.');
-    return;
-  }
-  if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
-    console.log('Description:', description);
-    formData.description = description;
-  }
-  else {
-    alert('Description is required.');
-    return;
-  }
-  if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length <= 10) {
-    console.log('TagId:', TagId);
-    formData.TagId = TagId;
-  }
-  else {
-    alert('TagId is required.');
-    return;
-  }
-  console.log('formData', formData)
-  try {
-    console.log('Selected Portion is empty. Adding logs to the entire code file.')
-    console.log('Selected Portion is empty. Adding logs to the entire code file.')
-    const response = await fetch('/admin/dashboard/createsubcategory', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Sub Category Added Successfully', data);
-      alert('Sub Category Added Successfully');
-      // subCategoryForm.style.display = 'none'
-      // document.querySelector('.subCategoryForm').style.display = 'none'
-      document.querySelector('.subCategoryForm').style.hidden = true
+//   if (subCategoryName && subCategoryName.trim() !== '' && typeof subCategoryName === 'string' && subCategoryName.length > 0) {
+//     console.log('Sub Category Name:', subCategoryName);
+//     formData.subCategoryName = subCategoryName;
+//   }
+//   else {
+//     alert('Sub Category name is required.');
+//     return;
+//   }
+//   if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
+//     console.log('Description:', description);
+//     formData.description = description;
+//   }
+//   else {
+//     alert('Description is required.');
+//     return;
+//   }
+//   if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length <= 10) {
+//     console.log('TagId:', TagId);
+//     formData.TagId = TagId;
+//   }
+//   else {
+//     alert('TagId is required.');
+//     return;
+//   }
+//   console.log('formData', formData)
+//   try {
+//     console.log('Selected Portion is empty. Adding logs to the entire code file.')
+//     console.log('Selected Portion is empty. Adding logs to the entire code file.')
+//     const response = await fetch('/admin/dashboard/createsubcategory', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify(formData),
+//     })
+//     if (response.ok) {
+//       const data = await response.json();
+//       console.log('Sub Category Added Successfully', data);
+//       alert('Sub Category Added Successfully');
+//       // subCategoryForm.style.display = 'none'
+//       // document.querySelector('.subCategoryForm').style.display = 'none'
+//       document.querySelector('.subCategoryForm').style.hidden = true
 
-      // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
-    }
-    else {
-      const data = await response.json();
-      console.log('Error while adding sub category', data);
-      alert('Failed to add sub category something went wrong or sub category already exists in db');
-      // document.querySelector('.subCategoryForm').style.display = 'none'
-      document.querySelector('.subCategoryForm').style.hidden = true
-      // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
-    }
+//       // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+//     }
+//     else {
+//       const data = await response.json();
+//       console.log('Error while adding sub category', data);
+//       alert('Failed to add sub category something went wrong or sub category already exists in db');
+//       // document.querySelector('.subCategoryForm').style.display = 'none'
+//       document.querySelector('.subCategoryForm').style.hidden = true
+//       // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+//     }
 
-  } catch (error) {
-    console.error('Error:', error);
-    alert('An error occurred in sub Category form while sending data or receiving data from server . Please try again.');
-  }
-})
+//   } catch (error) {
+//     console.error('Error:', error);
+//     alert('An error occurred in sub Category form while sending data or receiving data from server . Please try again.');
+//   }
+// })
 
 const createCategoryBtn = document.querySelector('.createCatBtn')
 createCategoryBtn.addEventListener('click', () => {
-  document.querySelector('#create-category').style.display = 'block'
-  document.querySelector('.subcategory-container').style.display = 'none'
-  document.querySelector('#create-category .main-content').style.display = 'block'
-  // document.querySelector('#create-category #createCategoryForm').style.display = 'flex'
-  document.querySelector('#create-category #createCategoryForm .section').style.display = 'block'
-  document.querySelector('.cat-container').style.margin = '0'
-  document.querySelector('.container ').style.height = '175vh'
+  window.location.href = 'http://localhost:3500/admin/dashboard/category-create';
+  document.querySelector('#formMode').value = 'create';
+
+  // document.querySelector('#create-category').style.display = 'block'
+  // document.querySelector('.subcategory-container').style.display = 'none'
+  // document.querySelector('#create-category .main-content').style.display = 'block'
+  // // document.querySelector('#create-category #createCategoryForm').style.display = 'flex'
+  // document.querySelector('#create-category #createCategoryForm .section').style.display = 'block'
+  // document.querySelector('.cat-container').style.margin = '0'
+  // document.querySelector('.container ').style.height = '175vh'
+
+
 })
 // creating category
 // Reset Form Functionality
@@ -717,7 +991,9 @@ document.querySelector('.create-btn').addEventListener('click', async (Event) =>
 const createCategoryForm = document.querySelector('#createCategoryForm');
 createCategoryForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-
+  const formMode = document.querySelector('#formMode').value;
+  console.log(`formMode is ${formMode}`);
+  let url;
   // Validate form fields
   const categoryName = createCategoryForm.categoryTitle.value;
   const createdBy = createCategoryForm.createdBy.value;
@@ -725,26 +1001,56 @@ createCategoryForm.addEventListener('submit', async (e) => {
   const TagId = createCategoryForm.tagId.value;
   // const file = createCategoryForm.get('categoryThumbnail'); // Retrieve the image file from FormData
   // const fileInput = createCategoryForm.querySelector('input[name="image"]'); // Get the file input element
+  const cat_existing_thumbnail_for_edit = document.querySelector('#categoryThumbnail')
+  console.log(cat_existing_thumbnail_for_edit.src)
   const fileInput = createCategoryForm.querySelector('#thumbnailInput'); // Get the file input element
-  console.log(fileInput)
-  const file = fileInput.files[0]; // Retrieve the selected file from the file input
-  console.log(file)
-
-  // Create a FormData object
+  console.log('fileInput is', fileInput)
   const formData = new FormData();
 
-  if (file) {
-    formData.append('image', file)
-    console.log('Image Selected:', file.name);
-    console.log('File Name:', file.name);
-    console.log('File Size:', file.size, 'bytes');
-    console.log('File Type:', file.type);
-  } else {
-    alert('Category thumbnail is required.');
-    console.log('No image file selected');
+  if (formMode === 'create') {
+    if (fileInput.files[0] !== undefined) {
+      console.log(fileInput)
+      const file = fileInput.files[0]; // Retrieve the selected file from the file input
+      console.log(file)
+      url = '/admin/dashboard/createcategory'
+      // Create a FormData object
+      // thumbnailContainer.children[0].src
+      // Check if a file is selected
+      formData.append('image', file)
+      console.log('Image Selected:', file.name);
+      console.log('File Name:', file.name);
+      console.log('File Size:', file.size, 'bytes');
+      console.log('File Type:', file.type);
+    } else {
+      // alert('image is required')
+      console.log(' image is required')
+    }
+  } else if (formMode === 'edit') {
+    if (fileInput.files[0] !== undefined) {
+      console.log(fileInput)
+      const file = fileInput.files[0]; // Retrieve the selected file from the file input
+      console.log(file)
+      url = '/admin/dashboard/updatecategory'
+      // Create a FormData object
+      // thumbnailContainer.children[0].src
+      // Check if a file is selected
+      formData.append('image', file)
+      console.log('Image Selected:', file.name);
+      console.log('File Name:', file.name);
+      console.log('File Size:', file.size, 'bytes');
+      console.log('File Type:', file.type);
+    } else {
+      alert('image is required')
+      console.log(' image is required')
+      url = '/admin/dashboard/updatecategory'
+      formData.append('image', cat_existing_thumbnail_for_edit.src)
+      console.log('image is selected from cat_existing_thumbnail_for_edit.src')
+    }
   }
+
   if (categoryName && categoryName.trim() !== '' && typeof categoryName === 'string' && categoryName.length > 0) {
     formData.append('categoryName', categoryName)
+    console.log("category name is appended into formData object")
   } else {
     alert('Category name is required.');
     return;
@@ -752,6 +1058,7 @@ createCategoryForm.addEventListener('submit', async (e) => {
 
   if (createdBy && createdBy.trim() !== '' && typeof createdBy === 'string' && createdBy.length > 0) {
     formData.append('createdBy', createdBy)
+    console.log("createdBy is appended into formData object")
   }
   else {
     alert('Created By is required.');
@@ -759,6 +1066,7 @@ createCategoryForm.addEventListener('submit', async (e) => {
   }
   if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
     formData.append('description', description)
+    console.log("description is appended into formData object")
   }
   else {
     alert('Description is required.');
@@ -766,7 +1074,7 @@ createCategoryForm.addEventListener('submit', async (e) => {
   }
   if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length > 0) {
     formData.append('TagId', TagId)
-    console.log('TagId:', TagId);
+    console.log("TagId is appended into formData object")
   }
   else {
     alert('TagId is required.');
@@ -779,17 +1087,19 @@ createCategoryForm.addEventListener('submit', async (e) => {
   }
 
   try {
-    const response = await fetch('/admin/dashboard/createcategory', {
+    console.log(url)
+    const response = await fetch(url, {
       method: 'POST',
       body: formData,
     });
 
     if (response.ok) {
       const data = await response.json();
-      console.log('Category created successfully!', data);
+      console.log(`Category updated successfully!`, data);
       // resetForm();
       if (data.data) {
-        alert('Category created successfully!');
+        // console.log(data.message)
+        alert(`${data.message}`);
         console.log('Category created successfully!');
         // resetForm();
         // showCategory('category-list')

@@ -8,6 +8,8 @@ import { uploadOnCloudinaryForCategory } from '../../utils/cloudinary.js';
 
 const createCategory = asyncHandler(async (req, res) => {
     try {
+
+        console.log('this is  a create controller of create routes')
         console.log('req body of category create', req.body)
         const { categoryName, createdBy, TagId, description } = req.body;
         console.log('categoryName', categoryName)
@@ -52,7 +54,7 @@ const createCategory = asyncHandler(async (req, res) => {
 
         return res.status(200).json(new ApiResponse(
             200,
-            { category },
+            { data },
             "category created successfully",
             true
         ))
@@ -133,57 +135,99 @@ const getSingleCategory = asyncHandler(async (req, res) => {
     }
 })
 
-const updateCategory = asyncHandler(async (req, res) => {
+const updatecategory = asyncHandler(async (req, res) => {
     try {
-        let name = req.body.name;
-        let description = req.body.description;
-        let subCategory = req.body.subCategory;
-        if (!mongoose.Types.ObjectId.isValid(req.params.catId)) {
-            return res.status(404).json(new ApiResponse(
-                404,
-                null,
-                "Invalid Category Id format"
-            ))
-        }
-        const category = await Category.findById(req.params.catId)
-        if (!category) {
-            return res.status(404).json(new ApiResponse(
-                404,
-                null,
-                'Category not found'
-            ))
-        }
-        if (name) category.name = name
-        if (description) category.description = description
-        if (subCategory) {
-            console.log('not array sub category')
-            const existingSubCat = category.subCategories.some(
-                (sc) => sc.name === subCategory
-            );
-            if (!existingSubCat) {
-                console.log('sub category is added')
-                category.subCategories.push({ name: subCategory }); // Add new subcategory
-            }
-            else {
-                console.log('sub category is exists already')
+        console.log('this is  a update controller of update routes')
 
+        console.log('req body of category create', req.body)
+        const { categoryName, createdBy, TagId, description } = req.body;
+        console.log('categoryName', categoryName)
+        console.log('createdBy', createdBy)
+        console.log('TagId', TagId)
+        console.log('description', description)
+        console.log('req of files', req.file, req.body.image)
+        const pattern = /^https?:\/\/res\.cloudinary\.com\/.*\.(?:jpg|jpeg|png|gif|bmp|webp)$/i
+        if (pattern.test(req.body.image)) {
+            console.log('Valid image URL!');
+            const updatedCategory = await Category.findOneAndUpdate(
+                { $or: [{ name: req.body.categoryName }, { TagId: TagId }] },
+                {
+                    name: categoryName,
+                    createdBy: createdBy,
+                    CategoryThumbnail: req.body.image,
+                    description: description
+                },
+                { new: true }
+            );
+
+            if (!updatedCategory) {
+                return res.status(404).json(new ApiResponse(
+                    404,
+                    null,
+                    'Category not found'
+                ));
             }
-            console.log('sub category is pushed')
+
+            const savedCategory = await updatedCategory.save();
+            console.log('category is updated in database and saved returned data in savedCategory')
+            return res.status(200).json(new ApiResponse(
+                200,
+                { savedCategory },
+                "Category updated successfully",
+                true
+            ));
+
+        } else {
+            console.log('Invalid image URL.');
+            const category = await Category.findOne(
+                {
+                    $or: [
+                        { name: req.body.categoryName },
+                        { TagId: TagId }
+                    ]
+                }
+            );
+
+            console.log('category', category)
+            if (!category) {
+                console.log("cat not exists in db")
+                return res.status(200).json(
+                    new ApiResponse(
+                        200,
+                        { category },
+                        'Category not exists in a Db.'
+                    )
+                )
+            }
+
+            const image = req.file ? req.file : null;
+            console.log('image before save in cloudinary', image)
+            const categoryImage = await uploadOnCloudinaryForCategory(image);
+            console.log("productImage after saved in cloudinary", categoryImage)
+            console.log(categoryName, createdBy, TagId, description)
+
+            category.name = categoryName;
+            category.createdBy = createdBy;
+            category.CategoryThumbnail = categoryImage.url;
+            category.description = description;
+
+            const data = await category.save()
+            console.log(data, 'category', category)
+
+            return res.status(200).json(new ApiResponse(
+                200,
+                { data },
+                "category updated successfully",
+                true
+            ))
         }
-        const updatedCategory = await category.save();
-        return res.status(200).json({
-            status: 200,
-            message: 'Category updated successfully',
-            data: updatedCategory,
-        });
     }
-    catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            status: 500,
-            message: 'An error occurred while retrieving categories',
-            error: error.message
-        });
+    catch (err) {
+        res.status(400).json(new ApiError(
+            400,
+            'category could not bes created',
+            err
+        ))
     }
 })
 
@@ -342,12 +386,98 @@ const createSubCategory = asyncHandler(async (req, res) => {
         ))
     }
 });
+
+const updateSubCategory = asyncHandler(async (req, res) => {
+    try {
+        console.log(req.body.categoryTagId, req.body)
+        let subCatName = req.body.subCategoryName;
+        let description = req.body.description;
+        let subCatTagId = req.body.TagId;
+
+        let subCatData = {};
+        if (subCatName && subCatName.length !== 0) subCatData.name = subCatName
+        if (description) subCatData.description = description
+        if (subCatTagId) subCatData.TagId = subCatTagId
+        console.log(subCatData)
+        console.log(subCatName, description, subCatTagId)
+
+        const category = await Category.findOne({
+            TagId: req.body.categoryTagId
+        })
+        if (!category) {
+            return res.status(404).json(new ApiResponse(
+                404,
+                null,
+                'Category not found'
+            ))
+        }
+        console.log('category is found')
+        // Check if subCategory is provided
+        if (subCatTagId && subCatTagId.length != 0) {
+            // Check if the subcategory with the given TagId exists
+            const existingSubCat = category.subCategories.find(sc => sc.TagId === subCatTagId);
+            const existingSubCatIndex = category.subCategories.findIndex(sc => sc.TagId === subCatTagId);
+            console.log('exists subcat', existingSubCatIndex, existingSubCat)
+            if (existingSubCatIndex != -1) {
+                // If the subcategory exists, log that it exists
+                console.log('Subcategory already exists:', existingSubCatIndex);
+
+                // Update the existing subcategory properties
+                if (subCatName) {
+                    category.subCategories[existingSubCatIndex].name = subCatName;
+                }
+                if (subCatTagId) {
+                    category.subCategories[existingSubCatIndex].TagId = subCatTagId;
+                }
+                if (description) {
+                    category.subCategories[existingSubCatIndex].description = description;
+                }
+
+                // Add more properties to update as needed
+
+                // Save the updated category
+                const updatedCategory = await category.save();
+                return res.status(200).json({
+                    status: 200,
+                    message: 'Subcategory updated successfully',
+                    data: updatedCategory,
+                });
+                // return res.status(200).json(new ApiResponse(200, null, 'Subcategory already exists.'));
+            } else {
+                // If the subcategory does not exist, add it to the array
+                console.log('Subcategory does not exist, adding:');
+                category.subCategories.push(subCatData); // Add the new subcategory
+                const createdSubCat = await category.save();
+                return res.status(200).json({
+                    status: 200,
+                    message: 'Subcategory updated successfully',
+                    data: createdSubCat,
+                });
+            }
+        }
+        else {
+            console.log('sub category is not provided')
+            // If no subcategory is provided, return an error
+            return res.status(400).json(new ApiResponse(400, null, 'Subcategory is required'));
+        }
+    }
+    catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: 500,
+            message: 'An error occurred while retrieving categories',
+            error: error.message
+        });
+    }
+})
+
 export {
     createCategory,
     getAllCategory,
     getSingleCategory,
-    updateCategory,
+    updatecategory,
     deleteCategory,
     searchCategory,
-    createSubCategory
+    createSubCategory,
+    updateSubCategory
 }

@@ -20,7 +20,7 @@ categoryrouter.get('/admin/category', async (req, res) => {
 import { upload } from '../../middlewares/multer.middlewares.js'
 
 import {
-    createCategory, getAllCategory, getSingleCategory, updateCategory, deleteCategory, searchCategory, createSubCategory
+    createCategory, getAllCategory, getSingleCategory, updatecategory, updateSubCategory, deleteCategory, searchCategory, createSubCategory
 } from '../../controllers/admin/category.controllers.js';
 
 categoryrouter.route('/dashboard/createcategory').post(authorization('admin'),
@@ -35,11 +35,17 @@ categoryrouter.route('/dashboard/createcategory').post(authorization('admin'),
     createCategory
 );
 
+categoryrouter.route('/dashboard/updatecategory').post(authorization('admin'),
+    upload.single('image'),
+    updatecategory
+);
+
 categoryrouter.get(['/dashboard/category-lists', '/dashboard/category-edit', '/dashboard/category-create'], (req, res) => {
     res.sendFile(path.join(__dirname, '../../../public/admin/admin.html'))
     // res.sendFile(path.join(__dirname, '../../../public/user/home/header.html'));
     // res.send('dashboard category')
 })
+categoryrouter.route('/updatesubcategory').post(authorization('admin'), updateSubCategory)
 // get all category
 categoryrouter.route('/dashboard/getallcategory').get(authorization('admin'), getAllCategory)
 
@@ -48,7 +54,6 @@ categoryrouter.route('/dashboard/createsubcategory').post(authorization('admin')
 
 categoryrouter.route('/admin/getsinglecategory/:catId').post(authorization('admin'), getSingleCategory)
 
-categoryrouter.route('/admin/updatecategory/:catId').patch(authorization('admin'), updateCategory)
 
 categoryrouter.route('/admin/deletecategory').delete(authorization('admin'), deleteCategory)
 
