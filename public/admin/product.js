@@ -789,160 +789,166 @@ function subCategoryEditAction(clickedRow, mainCategoryTagId) {
   document.querySelector('.subCategoryForm form ').subCategoryName.value = clickedRow.children[0].innerHTML
   document.querySelector('.subCategoryForm form ').tagId.value = clickedRow.children[1].innerHTML
   document.querySelector('.subCategoryForm form').mainCategoryTagId.value = mainCategoryTagId
-  subCategoryForm.children[0].action = `/admin/updatecategory`
+  // subCategoryForm.children[0].action = `/admin/dashboard/createsubcategory`
+
   console.log(subCategoryForm.children[0].action)
-  // console.log(subCategoryForm)
-  subCategoryForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = {};
-    const subCategoryName = document.querySelector('.subCategoryForm form ').subCategoryName.value;
-    console.log(subCategoryName, document.querySelector('.subCategoryForm form ').subCategoryName.value)
-    // const subCategoryCreatedBy = subCategoryForm.subCategoryCreatedBy.value;
-    const description = document.querySelector('.subCategoryForm form ').description.value;
-    const categoryTagId = document.querySelector('.subCategoryForm form ').mainCategoryTagId.value;
-    const TagId = document.querySelector('.subCategoryForm form ').tagId.value;
-    console.log(TagId)
-    if (categoryTagId && categoryTagId.trim() !== '' && typeof categoryTagId === 'string' && categoryTagId.length > 0) {
-      console.log('Category TagId:', categoryTagId);
-      formData.categoryTagId = categoryTagId;
-    }
+  const subformMode = document.querySelector('#subformMode').value = 'editSub';
+  console.log(`subformMode is ${subformMode}`);// console.log(subCategoryForm)
+  // subCategoryForm.addEventListener('submit', async (e) => {
+  //   e.preventDefault();
+  //   const formData = {};
+  //   const subCategoryName = document.querySelector('.subCategoryForm form ').subCategoryName.value;
+  //   console.log(subCategoryName, document.querySelector('.subCategoryForm form ').subCategoryName.value)
+  //   // const subCategoryCreatedBy = subCategoryForm.subCategoryCreatedBy.value;
+  //   const description = document.querySelector('.subCategoryForm form ').description.value;
+  //   const categoryTagId = document.querySelector('.subCategoryForm form ').mainCategoryTagId.value;
+  //   const TagId = document.querySelector('.subCategoryForm form ').tagId.value;
+  //   console.log(TagId)
+  //   if (categoryTagId && categoryTagId.trim() !== '' && typeof categoryTagId === 'string' && categoryTagId.length > 0) {
+  //     console.log('Category TagId:', categoryTagId);
+  //     formData.categoryTagId = categoryTagId;
+  //   }
 
-    if (subCategoryName && subCategoryName.trim() !== '' && typeof subCategoryName === 'string' && subCategoryName.length > 0) {
-      console.log('Sub Category Name:', subCategoryName);
-      formData.subCategoryName = subCategoryName;
-    }
-    else {
-      alert('Sub Category name is required.');
-      return;
-    }
-    if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
-      console.log('Description:', description);
-      formData.description = description;
-    }
-    else {
-      alert('Description is required.');
-      return;
-    }
-    if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length <= 10) {
-      console.log('TagId:', TagId);
-      formData.TagId = TagId;
-    }
-    else {
-      alert('TagId is required.');
-      return;
-    }
-    console.log('formData', formData)
-    try {
-      const response = await fetch(`/admin/updatesubcategory`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Sub Category Added Successfully', data);
-        alert('Sub Category Added Successfully');
-        // subCategoryForm.style.display = 'none'
-        // document.querySelector('.subCategoryForm').style.display = 'none'
-        // document.querySelector('.subCategoryForm').style.hidden = true
-        document.querySelector('.subCategoryForm').style.display = 'none'
+  //   if (subCategoryName && subCategoryName.trim() !== '' && typeof subCategoryName === 'string' && subCategoryName.length > 0) {
+  //     console.log('Sub Category Name:', subCategoryName);
+  //     formData.subCategoryName = subCategoryName;
+  //   }
+  //   else {
+  //     alert('Sub Category name is required.');
+  //     return;
+  //   }
+  //   if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
+  //     console.log('Description:', description);
+  //     formData.description = description;
+  //   }
+  //   else {
+  //     alert('Description is required.');
+  //     return;
+  //   }
+  //   if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length <= 10) {
+  //     console.log('TagId:', TagId);
+  //     formData.TagId = TagId;
+  //   }
+  //   else {
+  //     alert('TagId is required.');
+  //     return;
+  //   }
+  //   console.log('formData', formData)
+  //   try {
+  //     const response = await fetch('/admin/dashboard/createsubcategory', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(formData),
+  //     })
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       console.log('Sub Category Added Successfully', data);
+  //       alert('Sub Category Added Successfully');
+  //       // subCategoryForm.style.display = 'none'
+  //       // document.querySelector('.subCategoryForm').style.display = 'none'
+  //       // document.querySelector('.subCategoryForm').style.hidden = true
+  //       document.querySelector('.subCategoryForm').style.display = 'none'
 
 
-        // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
-      }
-      else {
-        const data = await response.json();
-        console.log('Error while adding sub category', data);
-        alert('Failed to add sub category something went wrong or sub category already exists in db');
-        subCategoryForm.style.display = 'none';
-        // document.querySelector('.subCategoryForm').style.hidden = true
-        // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
-      }
+  //       // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+  //     }
+  //     else {
+  //       const data = await response.json();
+  //       console.log('Error while adding sub category', data);
+  //       alert('Failed to add sub category something went wrong or sub category already exists in db');
+  //       subCategoryForm.style.display = 'none';
+  //       // document.querySelector('.subCategoryForm').style.hidden = true
+  //       // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+  //     }
 
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred in sub Category form while sending data or receiving data from server . Please try again.');
-    }
-  })
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     alert('An error occurred in sub Category form while sending data or receiving data from server . Please try again.');
+  //   }
+  // })
 }
 // sub category form logic to send data to server and receive response
 const subCategoryForm = document.querySelector('.subCategoryForm form');
 // console.log(subCategoryForm)
-// subCategoryForm.addEventListener('submit', async (e) => {
-//   e.preventDefault();
-//   const formData = {};
-//   const subCategoryName = subCategoryForm.subCategoryName.value;
-//   // const subCategoryCreatedBy = subCategoryForm.subCategoryCreatedBy.value;
-//   const description = subCategoryForm.description.value;
-//   const categoryTagId = subCategoryForm.mainCategoryTagId.value;
-//   const TagId = subCategoryForm.tagId.value;
-//   console.log(TagId)
-//   if (categoryTagId && categoryTagId.trim() !== '' && typeof categoryTagId === 'string' && categoryTagId.length > 0) {
-//     console.log('Category TagId:', categoryTagId);
-//     formData.categoryTagId = categoryTagId;
-//   }
+subCategoryForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  let url;
+  if (document.querySelector('#subformMode').value === 'createSub') {
+    url = '/admin/dashboard/createsubcategory'
+  }
+  else if (document.querySelector('#subformMode').value === 'editSub') {
+    url = '/admin/dashboard/editsubcategory'
+  }
+  const formData = {};
+  const subCategoryName = subCategoryForm.subCategoryName.value;
+  // const subCategoryCreatedBy = subCategoryForm.subCategoryCreatedBy.value;
+  const description = subCategoryForm.description.value;
+  const categoryTagId = subCategoryForm.mainCategoryTagId.value;
+  const TagId = subCategoryForm.tagId.value;
+  console.log(TagId)
+  if (categoryTagId && categoryTagId.trim() !== '' && typeof categoryTagId === 'string' && categoryTagId.length > 0) {
+    console.log('Category TagId:', categoryTagId);
+    formData.categoryTagId = categoryTagId;
+  }
 
-//   if (subCategoryName && subCategoryName.trim() !== '' && typeof subCategoryName === 'string' && subCategoryName.length > 0) {
-//     console.log('Sub Category Name:', subCategoryName);
-//     formData.subCategoryName = subCategoryName;
-//   }
-//   else {
-//     alert('Sub Category name is required.');
-//     return;
-//   }
-//   if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
-//     console.log('Description:', description);
-//     formData.description = description;
-//   }
-//   else {
-//     alert('Description is required.');
-//     return;
-//   }
-//   if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length <= 10) {
-//     console.log('TagId:', TagId);
-//     formData.TagId = TagId;
-//   }
-//   else {
-//     alert('TagId is required.');
-//     return;
-//   }
-//   console.log('formData', formData)
-//   try {
-//     console.log('Selected Portion is empty. Adding logs to the entire code file.')
-//     console.log('Selected Portion is empty. Adding logs to the entire code file.')
-//     const response = await fetch('/admin/dashboard/createsubcategory', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify(formData),
-//     })
-//     if (response.ok) {
-//       const data = await response.json();
-//       console.log('Sub Category Added Successfully', data);
-//       alert('Sub Category Added Successfully');
-//       // subCategoryForm.style.display = 'none'
-//       // document.querySelector('.subCategoryForm').style.display = 'none'
-//       document.querySelector('.subCategoryForm').style.hidden = true
+  if (subCategoryName && subCategoryName.trim() !== '' && typeof subCategoryName === 'string' && subCategoryName.length > 0) {
+    console.log('Sub Category Name:', subCategoryName);
+    formData.subCategoryName = subCategoryName;
+  }
+  else {
+    alert('Sub Category name is required.');
+    return;
+  }
+  if (description && description.trim() !== '' && typeof description === 'string' && description.length > 0) {
+    console.log('Description:', description);
+    formData.description = description;
+  }
+  else {
+    alert('Description is required.');
+    return;
+  }
+  if (TagId && TagId.trim() !== '' && typeof TagId === 'string' && TagId.length <= 10) {
+    console.log('TagId:', TagId);
+    formData.TagId = TagId;
+  }
+  else {
+    alert('TagId is required.');
+    return;
+  }
+  console.log('formData', formData)
+  try {
+    console.log(url)
+    console.log('Selected Portion is empty. Adding logs to the entire code file.')
+    const response = await fetch('/admin/dashboard/createsubcategory', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Sub Category Added Successfully', data);
+      alert('Sub Category Added Successfully');
+      // document.querySelector('.subCategoryForm').style.hidden = true
+      document.querySelector('.subCategoryForm').style.display = 'none'
+    }
+    else {
+      const data = await response.json();
+      console.log('Error while adding sub category', data);
+      alert('Failed to add sub category something went wrong or sub category already exists in db');
+      // document.querySelector('.subCategoryForm').style.display = 'none'
+      document.querySelector('.subCategoryForm').style.hidden = true
+      // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
+    }
 
-//       // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
-//     }
-//     else {
-//       const data = await response.json();
-//       console.log('Error while adding sub category', data);
-//       alert('Failed to add sub category something went wrong or sub category already exists in db');
-//       // document.querySelector('.subCategoryForm').style.display = 'none'
-//       document.querySelector('.subCategoryForm').style.hidden = true
-//       // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
-//     }
-
-//   } catch (error) {
-//     console.error('Error:', error);
-//     alert('An error occurred in sub Category form while sending data or receiving data from server . Please try again.');
-//   }
-// })
+  } catch (error) {
+    console.error('Error:', error);
+    alert('An error occurred in sub Category form while sending data or receiving data from server . Please try again.');
+  }
+})
 
 const createCategoryBtn = document.querySelector('.createCatBtn')
 createCategoryBtn.addEventListener('click', () => {

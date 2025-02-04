@@ -340,18 +340,20 @@ const searchCategory = asyncHandler(async (req, res) => {
 
 const createSubCategory = asyncHandler(async (req, res) => {
     try {
-        console.log('sub category')
+        console.log('this is a createsubcategory controller of createsubCategory')
+        console.log('sub category', req.body)
         const { categoryTagId, subCategoryName, description, TagId } = req.body;
         console.log(typeof categoryTagId)
         const category = await Category.findOne({
             TagId: categoryTagId,
         });
-        console.log('category', category)
+        console.log('category is found')
         if (!category) {
             return res.status(400).json(new ApiError(
                 400,
                 null,
-                "Category not found"
+                "Category not found",
+                true
             ))
         }
         const subCategory = category.subCategories.find(subCat => subCat.name === subCategoryName && subCat.TagId === TagId);
@@ -359,22 +361,24 @@ const createSubCategory = asyncHandler(async (req, res) => {
             return res.status(400).json(new ApiError(
                 400,
                 null,
-                "Subcategory already exists"
+                "Subcategory already exists",
+                true
             ));
         }
-
-        category.subCategories.push({
+        console.log('subcategory is found')
+        const createdSubcategory = category.subCategories.push({
             name: subCategoryName,
             TagId: TagId,
             description: description
         });
 
-        await category.save();
+        const savedCreatedSubCategory = await category.save();
 
         return res.status(200).json(new ApiResponse(
             200,
-            category,
-            "Subcategory created successfully"
+            { savedCreatedSubCategory },
+            "Subcategory created successfully",
+            true
         ));
     }
     catch (error) {
@@ -382,7 +386,8 @@ const createSubCategory = asyncHandler(async (req, res) => {
         return res.status(500).json(new ApiResponse(
             500,
             null,
-            "An error occurred while creating sub category"
+            "An error occurred while creating sub category",
+            false
         ))
     }
 });
@@ -480,4 +485,4 @@ export {
     searchCategory,
     createSubCategory,
     updateSubCategory
-}
+}        

@@ -45,7 +45,7 @@ categoryrouter.get(['/dashboard/category-lists', '/dashboard/category-edit', '/d
     // res.sendFile(path.join(__dirname, '../../../public/user/home/header.html'));
     // res.send('dashboard category')
 })
-categoryrouter.route('/updatesubcategory').post(authorization('admin'), updateSubCategory)
+categoryrouter.route('/dashboard/updatesubcategory').post(authorization('admin'), updateSubCategory)
 // get all category
 categoryrouter.route('/dashboard/getallcategory').get(authorization('admin'), getAllCategory)
 
