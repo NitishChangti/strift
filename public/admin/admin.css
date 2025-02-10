@@ -627,10 +627,6 @@ img.subcategory-img {
   border: none;
 }
 
-.btn-danger:hover {
-  background-color: #d32f2f;
-}
-
 /* Form Styling */
 form label {
   display: block;
@@ -727,3 +723,9 @@ form textarea:focus {
   position: absolute;
   top: 100px;
 }
+
+/* .onEditProduct {
+  z-index: 5;
+  position: absolute;
+  top: 100px;
+} */

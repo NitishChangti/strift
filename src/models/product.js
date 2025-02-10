@@ -5,37 +5,66 @@ const productSchema = new Schema(
     {
         name: {
             type: String,
-            require: true,
+            required: true,
             trim: true
         },
         description: {
             type: String,
-            require: true,
+            required: true,
         },
-        Category: {
-            type: Schema.Types.ObjectId,
-            ref: 'Category',
-            require: true
+        TagId: {
+            type: String,
+            required: true
+        },
+        CategoryName: {
+            type: String,
+            required: true
+        }
+        ,
+        CategoryTagId: {
+            // type: Schema.Types.ObjectId,
+            // ref: 'Category',
+            type: String,
+            required: true
+        },
+        subCategoryName: {
+            type: String,
+            required: true
+        }
+        ,
+        subCategoryTagId: {
+            type: String,
+            required: true
+        },
+        gender: {
+            type: String,
+            required: true
         },
         image: {
-            type: String
+            type: String,
+            required: true
         },
         images: [{
-            type: String
+            type: String,
+            required: true
         }],
         price: {
             type: String,
-            require: true,
+            required: true,
             min: 0
+        },
+        discount: {
+            type: String,
+            required: true
         },
         countInStock: {
             type: Number,
-            require: true,
+            required: true,
             min: 0
         },
         ratings: {
             type: Number,
-            require: true,
+            // required: true,
         },
         reviews: [
             {
@@ -45,11 +74,11 @@ const productSchema = new Schema(
                 },
                 comment: {
                     type: String,
-                    require: true
+                    // required: true
                 },
                 ratings: {
                     type: Number,
-                    require: true
+                    // required: true
                 },
                 date: {
                     type: Date,
@@ -57,22 +86,20 @@ const productSchema = new Schema(
                 }
             }
         ],
-        variants: [
-            {
-                size: {
-                    type: String,
-                    require: true
-                },
-                color: {
-                    type: String,
-                    require: true
-                },
-                stock: {
-                    type: Number,
-                    require: true
-                }
-            }
-        ],
+        variants: {
+            size: [{
+                type: String,
+                required: true
+            }],
+            color: [{
+                type: String,
+                required: true
+            }],
+            // stock: {
+            //     type: Number,
+            //     required: true
+            // }
+        },
         productDetails: {
             type: Schema.Types.Mixed, // Allows dynamic key-value pairs (flexible structure)
         }

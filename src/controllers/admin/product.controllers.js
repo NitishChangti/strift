@@ -10,173 +10,153 @@ import { query } from "express";
 
 
 const createProduct = asyncHandler(async (req, res) => {
-    const { name,
-        Categories,
-        description,
-        price,
-        countInStock,
-        variant,
-        ...productDetails // Use the rest of the fields dynamically
-    } = req.body;
-
-    // Check if the 'variant' data exists before processing it
-    // const variants = Object.keys(req.body)
-    //     .filter(key => key.startsWith('variant'))  // Check for variant keys
-    //     .map(key => {
-    //         const indexMatch = key.match(/\d+/);  // Extract index number from key (e.g. 0, 1)
-    //         if (indexMatch) {
-    //             const index = indexMatch[0];  // If there's no match, `indexMatch` will be null
-    //             const variant = {
-    //                 size: req.body[`variant[${index}][size]`],
-    //                 color: req.body[`variant[${index}][color]`],
-    //                 stock: req.body[`variant[${index}][stock]`],
-    //             };
-    //             return variant;
-    //         }
-    //         return null;
-    //     })
-    //     .filter(variant => variant !== null);  // Filter out any null variants if the keys were malformed
-
-    console.log('before variants', variant.length)
-    // Manually capture variants from the request body
-    const variants = [];
-    for (let i = 0; i < variant.length; i++) {
-        let size = req.body.variant[i].size;
-        let color = req.body.variant[i].color;
-        let stock = req.body.variant[i].stock;
-        console.log("size", size)
-
-        if (!size || !color || !stock) {
-            break;  // Stop when there are no more valid variants
+    try {
+        console.log('this is a create product controller of a create product route')
+        const { productName,
+            category,
+            subCategory,
+            TagId,
+            gender,
+            description,
+            selectedSizes,
+            selectedColors,
+            countInStock,
+            price,
+            discount,
+            ...productDetails // Use the rest of the fields dynamically
+        } = req.body;
+        // Extract images
+        const mainImageFile = req.files?.image ? req.files.image[0] : null;
+        const additionalImageFiles = req.files?.images || [];
+        console.log('req', req.body, mainImageFile, additionalImageFiles)
+        console.log(productName,
+            category,
+            subCategory,
+            gender,
+            description,
+            selectedSizes,
+            selectedColors,
+            countInStock,
+            price,
+            discount,
+            TagId,
+            'product details', productDetails,
+        )
+        // Validate required fields
+        if (!productName || !category || !description || !selectedSizes || !selectedColors || !countInStock || !price || !discount || !TagId) {
+            return res.status(400).json({ message: "All required fields must be provided." });
         }
-        console.log("size", color)
+        const numericCountInStock = Number(countInStock);
+        if (isNaN(numericCountInStock) || numericCountInStock < 0) {
+            return res.status(400).json({ message: "Invalid countInStock value" });
+        }
 
-        variants.push({ size, color, stock });
-    }
-    if (!Array.isArray(variants)) {
-        console.log('variants is not valid')
-        return res.status(400).json({ message: "Invalid variant data format" });
-    }
-    const validateProductDetails = (productDetails) => {
-        const rules = {
-            StyleCode: 'string',
-            PackOf: 'string',
-            Closure: 'string',
-            Fit: 'string',
-            Collar: 'string',
-            Fabric: 'string',
-            Sleeve: 'string',
-            Pattern: 'string',
-            Reversible: 'string',
-            FabricCare: 'string',
-            SuitableFor: 'string',
-            Hem: 'string',
-            NetQuantity: 'string', // Change to 'number' if needed
+        const findCategory = await Category.findOne({ name: category });
+        if (!findCategory) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        const subCategoryData = findCategory.subCategories.find(subCat => subCat.name === subCategory);
+        if (!subCategoryData) {
+            return res.status(404).json({ message: "SubCategory not found in the specified category" });
+        }
+        console.log(findCategory.TagId, subCategoryData)
+        const findProduct = await product.findOne({
+            $or: [
+                { productName },
+                { TagId: TagId }
+            ]
+        });
+        if (findProduct) {
+            return res.status(404).json({ message: 'product already exists in db' })
+        }
+        console.log(findProduct)
+        // // const productImage = await uploadOnCloudinary(image);
+        const productImage = await singleUploadOnCloudinary(mainImageFile);
+        console.log("productImage after saved in cloudinary", productImage)
+        const productImages = await Promise.all(
+            additionalImageFiles.map((localFilePath) => uploadOnCloudinary(localFilePath.path))
+        );
+        console.log('productImages', productImages[0])
+        if (!productImage) {
+            return res.status(400).json({ message: 'Single image is required.' });
+        }
+
+        if (productImages.length === 0) {
+            return res.status(400).json({ message: 'At least one additional image is required.' });
+        }
+
+        // // Filter out any null or undefined URLs in case some uploads failed
+        const validProductImages = productImages.filter((url) => url !== null);
+        let mulImages = validProductImages.map(val => val.url)
+        console.log('mulImages', mulImages)
+        const sizesArray = JSON.parse(selectedSizes);
+        const colorsArray = JSON.parse(selectedColors);
+
+        if (!Array.isArray(sizesArray) || !Array.isArray(colorsArray)) {
+            return res.status(400).json({ message: "Sizes and colors must be arrays." });
+        }
+
+        // Create the variants object
+        const variants = {
+            size: sizesArray,
+            color: colorsArray
         };
 
-        for (const key in rules) {
-            if (!productDetails[key] || typeof productDetails[key] !== rules[key]) {
-                return `${key} is either empty or not a ${rules[key]}.`;
-            }
+        console.log("Variants:", variants);
+
+        // if (!Array.isArray(variants)) {
+        //     console.log('variants is not valid')
+        //     return res.status(400).json({ message: "Invalid variant data format" });
+        // }
+
+
+        const newProduct = new product({
+            name: productName,
+            CategoryName: category,
+            CategoryTagId: findCategory.TagId,
+            subCategoryName: subCategory,
+            subCategoryTagId: subCategoryData.TagId,
+            gender: gender,
+            TagId: TagId,
+            description: description,
+            price: price,
+            discount: discount,
+            countInStock: numericCountInStock,
+            image: productImage.url,
+            images: mulImages,
+            variants: variants,
+            productDetails: productDetails
+        });
+        await newProduct.save();
+        console.log('product is created in db', newProduct)
+        if (!newProduct) {
+            return res.status(500).json({ message: 'Product creation failed.' });
         }
 
-        return null;
-    };
-
-    // Example usage:
-    const validationError = validateProductDetails(productDetails);
-    if (validationError) {
-        console.log('Validation Failed:', validationError);
-    } else {
-        console.log('Product details are valid');
+        return res.status(200).json(new ApiResponse(
+            200,
+            { product: newProduct },
+            "product created successfully",
+        ));
     }
-    console.log(productDetails, variants)
-
-    const image = req.files.image ? req.files.image[0] : null;
-    const images = req.files.images ? req.files.images.map(file => file.path) : [];
-    console.log(` product name ${name}`);
-
-    const numericCountInStock = Number(countInStock);
-    if (isNaN(numericCountInStock)) {
-        return res.status(400).json({ message: "Invalid countInStock value" });
+    catch (err) {
+        if (err instanceof Error) {
+            console.error('Error stack trace:', err.stack);  // Log the stack trace for deeper debugging
+        }
+        return res.status(500).json(new ApiError(
+            500,
+            {},
+            'something went wrong in createproduct api while requesting',
+            false,
+            err
+        ))
     }
-
-    // const numericCountInStock = Number(countInStock);
-    console.log(countInStock, numericCountInStock)
-    if (name.length > 0 && typeof name === 'string'
-        && Categories.length > 0 && typeof Categories === 'string'
-        && description.length > 0 && typeof description === 'string'
-        && price.length > 0
-        && typeof price === "string"
-        && typeof numericCountInStock === 'number'
-    ) {
-        console.log('validation is successful in create product')
-    }
-    else {
-        console.log('validation is failed in create product')
-    }
-
-    const findProduct = await product.findOne({ name });
-    if (findProduct) {
-        return res.status(404).json({ message: 'product already exists in db' })
-    }
-
-    // const productImage = await uploadOnCloudinary(image);
-    const productImage = await singleUploadOnCloudinary(image);
-    console.log("productImage after saved in cloudinary", productImage)
-    const productImages = await Promise.all(
-        images.map((localFilePath) => uploadOnCloudinary(localFilePath))
-    );
-    console.log('productImages', productImages[0])
-    if (!productImage) {
-        return res.status(400).json({ message: 'Single image is required.' });
-    }
-
-    if (productImages.length === 0) {
-        return res.status(400).json({ message: 'At least one additional image is required.' });
-    }
-    let categoryId = null;
-    let findCat = await Category.findOne({ name: Categories });
-    let findSubCat;
-    if (findCat) {
-        console.log("Main Category found:", findCat);
-        categoryId = findCat._id;
-    } else {
-        findSubCat = await Category.findOne({ "subCategories.name": Categories })
-        console.log("Main Category not found:", findSubCat);
-        findSubCat = findSubCat.subCategories.find((subCat) => subCat.name === Categories)
-        categoryId = findSubCat._id;
-        console.log(categoryId)
-    }
-
-    // Filter out any null or undefined URLs in case some uploads failed
-    const validProductImages = productImages.filter((url) => url !== null);
-    let mulImages = validProductImages.map(val => val.url)
-    console.log('mulImages', mulImages)
-    const Product = new product({
-        name: name,
-        Category: categoryId,
-        description: description,
-        price: price,
-        countInStock: numericCountInStock,
-        image: productImage.url,
-        images: mulImages,
-        variants: variants,
-        productDetails: productDetails
-    });
-    await Product.save()
-    if (!product) {
-        return res.status(404).json(404, 'product already exists in db')
-    }
-    return res.status(200).json(new ApiResponse(
-        200,
-        { product },
-        "product created successfully",
-    ))
 })
 
 const getAllProducts = asyncHandler(async (req, res) => {
     try {
+        console.log('this is controller of get all products')
         console.log(typeof req.query.skip)
         console.log(typeof req.query.limit)
         const skip = req.query.skip
@@ -222,6 +202,9 @@ const getAllProducts = asyncHandler(async (req, res) => {
             'true'
         ))
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error stack trace:', error.stack);  // Log the stack trace for deeper debugging
+        }
         return res.status(500).json(new ApiResponse(
             500,
             { error },
@@ -336,61 +319,159 @@ const getSingleProduct = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
     try {
-        const { name, Categories, description, price, countInStock } = req.body;
-        const id = req.query.id
-        const image = req.files.image ? req.files.image[0] : null;
-        const images = req.files.images ? req.files.images.map(file => file.path) : [];
-        // console.log('image is', image)
-        // console.log("countInStock", countInStock)
+
+        console.log('this is a update product controller of a update product route')
+        const mainImageFile = req.files?.image ? req.files.image[0] : null;
+        const additionalImageFiles = req.files?.images || [];
+        const { productName,
+            category,
+            subCategory,
+            TagId,
+            gender,
+            description,
+            selectedSizes,
+            selectedColors,
+            countInStock,
+            price,
+            discount,
+            image,
+            images,
+            ...productDetails // Use the rest of the fields dynamically
+        } = req.body;
+        // Extract images
+        console.log(image, images)
+        console.log(mainImageFile, additionalImageFiles)
+        console.log(productName,
+            category,
+            subCategory,
+            gender,
+            description,
+            selectedSizes,
+            selectedColors,
+            countInStock,
+            price,
+            discount,
+            TagId,
+            'product details', productDetails,
+        )
+        // Validate required fields
+        if (!productName || !category || !description || !selectedSizes || !selectedColors || !countInStock || !price || !discount || !TagId) {
+            return res.status(400).json({ message: "All required fields must be provided." });
+        }
+        const numericCountInStock = Number(countInStock);
+        if (isNaN(numericCountInStock) || numericCountInStock < 0) {
+            return res.status(400).json({ message: "Invalid countInStock value" });
+        }
+
+        const findCategory = await Category.findOne({ name: category });
+        if (!findCategory) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        const subCategoryData = findCategory.subCategories.find(subCat => subCat.name === subCategory);
+        if (!subCategoryData) {
+            return res.status(404).json({ message: "SubCategory not found in the specified category" });
+        }
+        // console.log(findCategory.TagId, subCategoryData)
+
+        // console.log(findCategory.TagId, subCategoryData)
+        const findProduct = await product.findOne({
+            $or: [
+                { productName },
+                { TagId: TagId }
+            ]
+        });
+        if (!findProduct) {
+            return res.status(404).json({ message: 'product already exists in db' })
+        }
+        // console.log('findProduct is', findProduct, 'image of product is', findProduct.image)
+
+
+
+        const sizesArray = JSON.parse(selectedSizes);
+        const colorsArray = JSON.parse(selectedColors);
+
+        if (!Array.isArray(sizesArray) || !Array.isArray(colorsArray)) {
+            return res.status(400).json({ message: "Sizes and colors must be arrays." });
+        }
+
+        // Create the variants object
+        const variants = {
+            size: sizesArray,
+            color: colorsArray
+        };
+
+        // console.log("Variants:", variants);
+
         // console.log(name, Categories, description, price, countInStock, id, image, images)
         let query = {}
-        if (name && typeof name === 'string' && name.length > 0) query.name = name
+        query.name = productName,
+            query.description = description,
+            query.TagId = TagId,
+            query.categoryName = category,
+            // query.CategoryTagId
+            query.subCategoryName = subCategory,
+            // query.subCategoryTagId
+            query.gender = gender,
+            //     query.image
+            // query.images
+            query.price = price,
+            query.countInStock = countInStock,
+            query.discount = discount,
+            query.variants = variants,
+            query.productDetails = productDetails
 
-        if (Categories && typeof Categories === 'string' && Categories.length > 0) query.category = Categories
-
-        if (description && typeof description === 'string' && description.length > 0) query.description = description
-
-        if (price && typeof price === 'string' && price.length > 0) query.price = price
-
-        if (countInStock) query.countInStock = countInStock
-
-        if (!id) return res.status(400).json({ message: "Product ID is required" });
-
-        const findProduct = await product.findById(id)
-        if (!findProduct) return res.status(404).json({ message: "Product not found" })
-
-        console.log(`findProduct ${findProduct}`)
-
-        if (findProduct.image && image) {
-            console.log('findProduct.image and image both available')
-            const publicId = findProduct.image?.split('upload/')[1]?.replace(/^[^/]+\//, "").split(".")[0];
-            console.log('public id', publicId)
-            await deleteSingleImageFromCloudinary(publicId)
-            console.log('destroyed image from cloudinary')
-            const productImage = await singleUploadOnCloudinary(image);
-            console.log("productImage after saved in cloudinary", productImage)
-            query.image = productImage.url
-            console.log('image work is done')
+        const pattern = /^https?:\/\/res\.cloudinary\.com\/.*\.(?:jpg|jpeg|png|gif|bmp|webp)$/i
+        if (pattern.test(req.body.image)) {
+            console.log('Valid image URL!');
+            query.image = req.body.image
         }
+        else {
+            console.log('Invalid image URL!');
 
-        if (findProduct.images && images && images.length > 0) {
-            // console.log(findProduct.images?.length)
-            for (let i = 0; i < findProduct.images?.length; i++) {
-                var publicId = findProduct.images[i].split('/upload/')[1].split('/')
-                publicId = `${publicId[1]}/${publicId[2]}/${publicId[3]}`.split('.')[0]
-                // console.log('public id multi images', publicId)
-                deleteSingleImageFromCloudinary(publicId)
-                // console.log(`destroyed image from cloudinary ${i}`)
+            console.log(query)
+
+            let image = mainImageFile;
+            console.log('image is', mainImageFile)
+            if (findProduct.image && image) {
+                console.log('findProduct.image and image both available')
+                const publicId = findProduct.image?.split('upload/')[1]?.replace(/^[^/]+\//, "").split(".")[0];
+                console.log('public id', publicId)
+                await deleteSingleImageFromCloudinary(publicId)
+                console.log('destroyed image from cloudinary')
+                const productImage = await singleUploadOnCloudinary(image);
+                // const productImage = await uploadOnCloudinary(image);
+                console.log("productImage after saved in cloudinary", productImage)
+                query.image = productImage.url
+                console.log('image work is done')
             }
-            const productImages = await Promise.all(
-                images.map((localFilePath) => uploadOnCloudinary(localFilePath))
-            );
-            query.images = productImages.map((img) => img.url);
-            console.log('images uploaded', query.images)
+
         }
-        console.log('product query started', findProduct._id)
-        const updateProduct = await product.findByIdAndUpdate(
-            id,   // Filter based on product id
+        // const pattern = /^https?:\/\/res\.cloudinary\.com\/.*\.(?:jpg|jpeg|png|gif|bmp|webp)$/i
+        if (pattern.test(req.body.images)) {
+            console.log('Valid image URL!');
+            query.images = req.body.images
+        }
+        else {
+            if (findProduct.images && images && images.length > 0) {
+                // console.log(findProduct.images?.length)
+                for (let i = 0; i < findProduct.images?.length; i++) {
+                    var publicId = findProduct.images[i].split('/upload/')[1].split('/')
+                    publicId = `${publicId[1]}/${publicId[2]}/${publicId[3]}`.split('.')[0]
+                    // console.log('public id multi images', publicId)
+                    deleteSingleImageFromCloudinary(publicId)
+                    // console.log(`destroyed image from cloudinary ${i}`)
+                }
+                const productImages = await Promise.all(
+                    images.map((localFilePath) => uploadOnCloudinary(localFilePath))
+                );
+                query.images = productImages.map((img) => img.url);
+                console.log('images uploaded', query.images)
+            }
+        }
+        // console.log('product query started', findProduct._id)
+        const updateProduct = await product.findOneAndUpdate(
+            { name: productName },   // Filter based on product id
             { $set: query },  // Update the fields dynamically
             { new: true }
         )
@@ -406,6 +487,9 @@ const updateProduct = asyncHandler(async (req, res) => {
         });
 
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error stack trace:', error.stack);  // Log the stack trace for deeper debugging
+        }
         return res.status(400).json(new ApiResponse(
             400,
             { error: "Invalid request" },
@@ -417,12 +501,22 @@ const updateProduct = asyncHandler(async (req, res) => {
 
 const deleteProduct = asyncHandler(async (req, res) => {
     try {
-        const id = req.query.id
+        const id = req.params.id;
         console.log(id)
+        // Validate if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            console.log('Invalid product ID format')
+            return res.status(400).json({ message: 'Invalid product ID format' });
+        }
+        else {
+            console.log('valid  product ID format')
+        }
+
         const Product = await product.findById(id)
         if (!Product) {
             return res.status(404).json({ message: "Product not found" });
         }
+        console.log(Product)
         if (Product.image) {
             console.log('findProduct.image  available')
             const publicId = Product.image?.split('upload/')[1]?.replace(/^[^/]+\//, "").split(".")[0];
@@ -454,6 +548,9 @@ const deleteProduct = asyncHandler(async (req, res) => {
             )
         )
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error stack trace:', error.stack);  // Log the stack trace for deeper debugging
+        }
         return res.status(400).json(new ApiResponse(
             400,
             { error: "Invalid request" },

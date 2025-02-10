@@ -29,15 +29,9 @@
       <ul>
         <li class="main-item"><i class="ri-box-3-line"></i>Products</li>
         <ul class="sub-menu">
-          <a href="">
-            <li>List</li>
-          </a>
-          <a href="">
-            <li>Edit</li>
-          </a>
-          <a href="">
-            <li>Create</li>
-          </a>
+          <li class="nav-link" data-route="/admin/dashboard/product-lists">List</li>
+          <li class="nav-link" data-route="/admin/dashboard/product-edit">Edit</li>
+          <li class="nav-link" data-route="/admin/dashboard/product-create">Create</li>
         </ul>
       </ul>
       <ul>
@@ -72,19 +66,22 @@
           <table class="product-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th>TagId</th>
                 <th>Image</th>
                 <th>Product Name</th>
                 <th>Category</th>
                 <th>Sub Category</th>
+                <th>Gender</th>
                 <th>Price</th>
-                <th>In Stock</th>
+                <th>Count In Stock</th>
+                <th>Sizes</th>
+                <th>Colors</th>
                 <th>Update</th>
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
+            <tbody class="product-list-data">
+              <!-- <tr>
                 <td>1</td>
                 <td>
                   <img src="guitar.jpg" alt="guitar" class="product-image" />
@@ -134,9 +131,11 @@
                   <button class="enable-btn">Enable</button>
                   <button class="delete-btn">Delete</button>
                 </td>
-              </tr>
+              </tr> -->
             </tbody>
           </table>
+          <div>
+          </div>
         </div>
       </div>
 
@@ -165,23 +164,23 @@
               <strong>Colors:</strong>
               <div style="display: flex; gap: 5px">
                 <div style="
-                      width: 20px;
-                      height: 20px;
-                      background: black;
-                      border-radius: 50%;
-                    "></div>
+                        width: 20px;
+                        height: 20px;
+                        background: black;
+                        border-radius: 50%;
+                      "></div>
                 <div style="
-                      width: 20px;
-                      height: 20px;
-                      background: blue;
-                      border-radius: 50%;
-                    "></div>
+                        width: 20px;
+                        height: 20px;
+                        background: blue;
+                        border-radius: 50%;
+                      "></div>
                 <div style="
-                      width: 20px;
-                      height: 20px;
-                      background: red;
-                      border-radius: 50%;
-                    "></div>
+                        width: 20px;
+                        height: 20px;
+                        background: red;
+                        border-radius: 50%;
+                      "></div>
               </div>
             </div>
             <div class="buttons">
@@ -190,54 +189,52 @@
             </div>
           </div>
 
-          <create-form class="create-form">
+          <form class="create-form" enctype="multipart/form-data" method="post" action="">
+            <input type="hidden" id="ProductformMode" name="ProductformMode" value="create" />
             <h2>Add Product main image</h2>
             <div class="upload-box" id="upload-box" style="border: 2px dashed #ccc; padding: 20px; text-align: center;">
               Drop your images here, or <strong>click to browse</strong>
-              <input type="file" id="image-upload" accept="image/*" style="display: none" multiple />
+              <input type="file" id="image-upload" class="image-upload" name="image" accept="image/*"
+                style="display: none" required />
             </div>
             <h2>Add Product images</h2>
             <div class="upload-box" id="upload-boxs">
               Drop your images here, or <strong>click to browse</strong>
-              <input type="file" id="image-uploads" class="" accept="image/*" style="display: none" multiple />
+              <input type="file" id="image-uploads" class="" name="images" accept="image/*" style="display: none"
+                required multiple />
             </div>
             <div>
               <label>Product Name</label>
-              <input type="text" placeholder="Enter product name" />
+              <input type="text" placeholder="Enter product name" name="productName" required />
             </div>
 
             <div>
-              <label>Brand</label>
-              <input type="text" placeholder="Enter brand name" />
+              <label>TagId</label>
+              <input type="text" placeholder="Enter brand name" name="TagId" required />
             </div>
 
-            <div>
-              <label>Weight</label>
-              <input type="text" placeholder="Enter weight in gm & kg" />
-            </div>
+            <!-- <div>
+                <label>Weight</label>
+                <input type="text" placeholder="Enter weight in gm & kg" name="weight" />
+              </div> -->
 
             <div>
               <label>Product Category</label>
-              <select>
-                <option>Select a category</option>
-                <option>Fashion</option>
-                <option>Electronics</option>
-                <option>Home</option>
+              <select name="category" required>
+                <option value="">Loading categories...</option>
               </select>
             </div>
+
             <div>
               <label>Product Sub Category</label>
-              <select>
-                <option>Select a sub category</option>
-                <option>Fashion</option>
-                <option>Electronics</option>
-                <option>Home</option>
+              <select name="subCategory" required>
+                <option value="">Loading subcategories...</option>
               </select>
             </div>
 
             <div>
               <label>Gender</label>
-              <select>
+              <select name="gender" required>
                 <option>Select Gender</option>
                 <option>Male</option>
                 <option>Female</option>
@@ -247,7 +244,8 @@
 
             <div>
               <label>Description</label>
-              <textarea placeholder="Short description about the product" rows="4"></textarea>
+              <textarea placeholder="Short description about the product" rows="4" name="description"
+                required></textarea>
             </div>
 
             <div class="sizes">
@@ -261,7 +259,7 @@
               <span>3XL</span>
             </div>
 
-            <div class="colors">
+            <div class="colors" aria-required="false">
               <label>Colors</label>
               <span style="background: black; color: white">Black</span>
               <span style="background: blue; color: white">Blue</span>
@@ -273,24 +271,42 @@
 
             <div>
               <label>Stock</label>
-              <input type="number" placeholder="Enter stock quantity" />
+              <input type="number" placeholder="Enter stock quantity" name="stock" required />
             </div>
 
             <div>
               <label>Price</label>
-              <input type="number" placeholder="Enter price" />
+              <input type="number" placeholder="Enter price" name="price" required />
             </div>
 
             <div>
               <label>Discount</label>
-              <input type="number" placeholder="Enter discount" />
+              <input type="text" placeholder="Enter discount" name="discount" required />
+            </div>
+            <br>
+            <div>
+              <!-- Add custom product field section here -->
+              <h2>Custom Product Fields</h2>
+              <div id="custom-fields-container" style="margin-bottom: 20px; ">
+                <!-- Custom fields will be appended here -->
+              </div>
+              <button type="button" id="add-custom-field" style="
+              background-color: #007bff;
+              height: 5vh;
+              color: white;
+              padding: 8px 12px;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;">
+                + Add Custom Field
+              </button>
             </div>
 
             <div class="buttons">
               <button type="submit">Create Product</button>
               <button type="button" class="cancel">Cancel</button>
             </div>
-          </create-form>
+          </form>
         </div>
       </div>
 
@@ -319,23 +335,23 @@
               <strong>Colors:</strong>
               <div style="display: flex; gap: 5px">
                 <div style="
-                      width: 20px;
-                      height: 20px;
-                      background: black;
-                      border-radius: 50%;
-                    "></div>
+                        width: 20px;
+                        height: 20px;
+                        background: black;
+                        border-radius: 50%;
+                      "></div>
                 <div style="
-                      width: 20px;
-                      height: 20px;
-                      background: blue;
-                      border-radius: 50%;
-                    "></div>
+                        width: 20px;
+                        height: 20px;
+                        background: blue;
+                        border-radius: 50%;
+                      "></div>
                 <div style="
-                      width: 20px;
-                      height: 20px;
-                      background: red;
-                      border-radius: 50%;
-                    "></div>
+                        width: 20px;
+                        height: 20px;
+                        background: red;
+                        border-radius: 50%;
+                      "></div>
               </div>
             </div>
             <div class="buttons">
@@ -344,52 +360,52 @@
             </div>
           </div>
 
-          <create-form class="create-form">
+          <form class="create-form" enctype="multipart/form-data" method="post" action="/admin/dashboard/createproduct">
+            <input type="hidden" id="ProductformMode" name="ProductformMode" value="create" />
             <h2>Add Product main image</h2>
-            <div class="upload-box">
+            <div class="upload-box" id="upload-box" style="border: 2px dashed #ccc; padding: 20px; text-align: center;">
               Drop your images here, or <strong>click to browse</strong>
+              <input type="file" id="image-upload" class="image-upload" name="image" accept="image/*"
+                style="display: none" required />
             </div>
-            <h2>Add Product iamges</h2>
-            <div class="upload-box">
+            <h2>Add Product images</h2>
+            <div class="upload-box" id="upload-boxs">
               Drop your images here, or <strong>click to browse</strong>
+              <input type="file" id="image-uploads" class="" name="images" accept="image/*" style="display: none"
+                required multiple />
             </div>
-
             <div>
               <label>Product Name</label>
-              <input type="text" placeholder="Enter product name" />
+              <input type="text" placeholder="Enter product name" class="productName" name="productName" required />
             </div>
 
             <div>
-              <label>Brand</label>
-              <input type="text" placeholder="Enter brand name" />
+              <label>TagId</label>
+              <input type="text" placeholder="Enter brand name" name="TagId" required />
             </div>
 
-            <div>
-              <label>Weight</label>
-              <input type="text" placeholder="Enter weight in gm & kg" />
-            </div>
+            <!-- <div>
+                <label>Weight</label>
+                <input type="text" placeholder="Enter weight in gm & kg" name="weight" />
+              </div> -->
 
             <div>
               <label>Product Category</label>
-              <select>
-                <option>Select a category</option>
-                <option>Fashion</option>
-                <option>Electronics</option>
-                <option>Home</option>
+              <select name="category" required>
+                <option value="">Loading categories...</option>
               </select>
             </div>
+
             <div>
               <label>Product Sub Category</label>
-              <select>
-                <option>Select a category</option>
-                <option>Fashion</option>
-                <option>Electronics</option>
-                <option>Home</option>
+              <select name="subCategory" required>
+                <option value="">Loading subcategories...</option>
               </select>
             </div>
+
             <div>
               <label>Gender</label>
-              <select>
+              <select name="gender" required>
                 <option>Select Gender</option>
                 <option>Male</option>
                 <option>Female</option>
@@ -399,7 +415,8 @@
 
             <div>
               <label>Description</label>
-              <textarea placeholder="Short description about the product" rows="4"></textarea>
+              <textarea placeholder="Short description about the product" rows="4" name="description"
+                required></textarea>
             </div>
 
             <div class="sizes">
@@ -413,7 +430,7 @@
               <span>3XL</span>
             </div>
 
-            <div class="colors">
+            <div class="colors" aria-required="false">
               <label>Colors</label>
               <span style="background: black; color: white">Black</span>
               <span style="background: blue; color: white">Blue</span>
@@ -425,24 +442,42 @@
 
             <div>
               <label>Stock</label>
-              <input type="number" placeholder="Enter stock quantity" />
+              <input type="number" placeholder="Enter stock quantity" name="stock" required />
             </div>
 
             <div>
               <label>Price</label>
-              <input type="number" placeholder="Enter price" />
+              <input type="number" placeholder="Enter price" name="price" required />
             </div>
 
             <div>
               <label>Discount</label>
-              <input type="number" placeholder="Enter discount" />
+              <input type="number" placeholder="Enter discount" name="discount" required />
+            </div>
+
+            <div>
+              <!-- Add custom product field section here -->
+              <h2>Custom Product Fields</h2>
+              <div id="custom-fields-container" style="margin-bottom: 20px; ">
+                <!-- Custom fields will be appended here -->
+              </div>
+              <button type="button" id="add-custom-field" style="
+              background-color: #007bff;
+              height: 5vh;
+              color: white;
+              padding: 8px 12px;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;">
+                + Add Custom Field
+              </button>
             </div>
 
             <div class="buttons">
               <button type="submit">Create Product</button>
               <button type="button" class="cancel">Cancel</button>
             </div>
-          </create-form>
+          </form>
         </div>
       </div>
 

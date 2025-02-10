@@ -14,10 +14,18 @@ productrouter.use(express.static(path.join(__dirname, '../../../public/admin')))
 
 
 import { authorization } from '../../middlewares/roleAuth.js'
-import { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct, searchProducts } from '../../controllers/admin/product.controllers.js'
+import {
+    createProduct,
+    getAllProducts, getSingleProduct, updateProduct, deleteProduct, searchProducts
+} from '../../controllers/admin/product.controllers.js'
 import { upload } from '../../middlewares/multer.middlewares.js'
 
-productrouter.route('/admin/createproduct').post(authorization('admin'),
+productrouter.get(['/dashboard/product-lists', '/dashboard/product-edit', '/dashboard/product-create'], (req, res) => {
+    res.sendFile(path.join(__dirname, '../../../public/admin/admin.html'))
+})
+
+
+productrouter.route('/dashboard/createproduct').post(authorization('admin'),
     upload.fields([
         {
             name: "image",
@@ -32,11 +40,11 @@ productrouter.route('/admin/createproduct').post(authorization('admin'),
     ]),
     createProduct)
 
-productrouter.route('/admin/getAllProducts').get(authorization('admin'), getAllProducts)
+productrouter.route('/dashboard/getAllProducts').get(authorization('admin'), getAllProducts)
 
 productrouter.route('/admin/getSingleProduct').get(authorization('admin'), getSingleProduct)
 
-productrouter.route('/admin/updateProduct').put(authorization('admin'),
+productrouter.route('/dashboard/editproduct').post(authorization('admin'),
     upload.fields([
         {
             name: "image",
@@ -51,7 +59,7 @@ productrouter.route('/admin/updateProduct').put(authorization('admin'),
     ]),
     updateProduct)
 
-productrouter.route('/admin/deleteProduct').delete(authorization('admin'), deleteProduct)
+productrouter.route('/dashboard/deleteproduct/:id').delete(authorization('admin'), deleteProduct)
 
 productrouter.route('/admin/searchProducts').get(authorization('admin'), searchProducts)
 export default productrouter

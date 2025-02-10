@@ -59,4 +59,6 @@ categoryrouter.route('/admin/deletecategory').delete(authorization('admin'), del
 
 categoryrouter.route('/admin/searchcategory').get(authorization('admin'), searchCategory)
 
+//get all category route to existing category in create product form 
+categoryrouter.route('/dashboard/getallcategoryforcreateproduct').get(authorization('admin'), getAllCategory)
 export default categoryrouter;
