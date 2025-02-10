@@ -475,7 +475,41 @@ const updateSubCategory = asyncHandler(async (req, res) => {
         });
     }
 })
+const deleteSubCategory = asyncHandler(async (req, res) => {
+    try {
+        console.log('this is delete sub category ')
+        const { mainCategoryTagId, subCategoryName, tagId } = req.body;
+        console.log(mainCategoryTagId, subCategoryName, tagId)
+        const category = await Category.findOne({ TagId: mainCategoryTagId });
+        if (!category) {
+            return res.status(404).json(new ApiResponse(404, null, 'Category not found'));
+        }
+        console.log('category is found', category)
+        const existingSubCatIndex = category.subCategories.findIndex((subCat) => subCat.name ===
+            subCategoryName);
+        console.log('subcategory is found', existingSubCatIndex)
 
+        if (existingSubCatIndex !== -1) {
+            category.subCategories.splice(existingSubCatIndex, 1);
+            const updatedCategory = await category.save();
+            console.log('subcategory is deleted')
+            return res.status(200).json({
+                status: 200,
+                message: 'Subcategory deleted successfully',
+                data: updatedCategory,
+            });
+        } else {
+            return res.status(404).json(new ApiResponse(404, null, 'Subcategory not found'));
+        }
+
+    } catch (error) {
+        return res.status(500).json({
+            status: 500,
+            message: 'An error occurred while deleting subcategory',
+            error: error.message
+        });
+    }
+})
 export {
     createCategory,
     getAllCategory,
@@ -484,5 +518,6 @@ export {
     deleteCategory,
     searchCategory,
     createSubCategory,
-    updateSubCategory
+    updateSubCategory,
+    deleteSubCategory
 }        

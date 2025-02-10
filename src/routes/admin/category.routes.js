@@ -20,17 +20,10 @@ categoryrouter.get('/admin/category', async (req, res) => {
 import { upload } from '../../middlewares/multer.middlewares.js'
 
 import {
-    createCategory, getAllCategory, getSingleCategory, updatecategory, updateSubCategory, deleteCategory, searchCategory, createSubCategory
+    createCategory, getAllCategory, getSingleCategory, updatecategory, updateSubCategory, deleteSubCategory, deleteCategory, searchCategory, createSubCategory
 } from '../../controllers/admin/category.controllers.js';
 
 categoryrouter.route('/dashboard/createcategory').post(authorization('admin'),
-    // upload.fields([
-    //     {
-    //         name: "image",
-    //         maxCount: 1,
-    //         minCount: 1
-    //     }
-    // ]),
     upload.single('image'),
     createCategory
 );
@@ -46,6 +39,10 @@ categoryrouter.get(['/dashboard/category-lists', '/dashboard/category-edit', '/d
     // res.send('dashboard category')
 })
 categoryrouter.route('/dashboard/updatesubcategory').post(authorization('admin'), updateSubCategory)
+
+//delete sub category
+categoryrouter.route('/dashboard/deletesubcategory').delete(authorization('admin'), deleteSubCategory)
+
 // get all category
 categoryrouter.route('/dashboard/getallcategory').get(authorization('admin'), getAllCategory)
 

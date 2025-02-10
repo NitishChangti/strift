@@ -397,7 +397,7 @@ async function showMainCategory() {
       } else if (event.target.classList.contains("delete")) {
         console.log("Delete button clicked", clickedRow);
         // Perform actions for the "Delete" button
-        // subCategoryDeleteAction(clickedRow);
+        subCategoryDeleteAction(clickedRow, mainCategoryTagId);
       } else {
         console.log("Clicked outside buttons but within a row:", clickedRow);
       }
@@ -432,13 +432,6 @@ async function showMainCategory() {
   // Close subCategoryForm when clicking outside of it
   document.addEventListener('click', (event) => {
     const subCategoryForm = document.querySelector('.subCategoryForm');
-    // if (!subCategoryForm.contains(event.target) && !createSubCategorybtn.contains(event.target)) {
-    //   event.stopPropagation();
-    //   subCategoryForm.style.display = 'none ';
-    //   // document.querySelector('.subCategoryForm').classList.add('subCatFormRemove')
-    //   // document.querySelector('.subCategoryForm').id = 'subCatFormRemove'
-
-    // }
     document.querySelector('.subCategoryForm form .form-buttons .btn-danger').addEventListener('click', (event) => {
       console.log('cancel button')
       subCategoryForm.style.display = 'none ';
@@ -468,11 +461,41 @@ function subCategoryEditAction(clickedRow, mainCategoryTagId) {
   document.querySelector('.subCategoryForm form ').subCategoryName.value = clickedRow.children[0].innerHTML
   document.querySelector('.subCategoryForm form ').tagId.value = clickedRow.children[1].innerHTML
   document.querySelector('.subCategoryForm form').mainCategoryTagId.value = mainCategoryTagId
-  // subCategoryForm.children[0].action = `/admin/dashboard/createsubcategory`
-
   console.log(subCategoryForm.children[0].action)
   const subformMode = document.querySelector('#subformMode').value = 'editSub';
   console.log(`subformMode is ${subformMode}`);
+}
+
+async function subCategoryDeleteAction(clickedRow, mainCategoryTagId) {
+  console.log('Delete button clicked');
+  // Get the container element and set its display property
+  const delteData = {};
+  delteData.mainCategoryTagId = mainCategoryTagId;
+  delteData.subCategoryName = clickedRow.children[1].innerHTML;
+  delteData.tagId = clickedRow.children[0].innerHTML;
+  console.log(delteData);
+  try {
+    const response = await fetch('/admin/dashboard/deletesubcategory', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(delteData)
+    })
+    if (response.ok) {
+      console.log('Data deleted successfully');
+      const data = await response.json();
+      console.log(data);
+    }
+    else {
+      console.log('Failed to delete data');
+      const errorData = await response.json();
+      console.log(errorData);
+      alert(errorData)
+    }
+  } catch (error) {
+
+  }
 }
 // sub category form logic to send data to server and receive response
 const subCategoryForm = document.querySelector('.subCategoryForm form');
@@ -559,16 +582,6 @@ const createCategoryBtn = document.querySelector('.createCatBtn')
 createCategoryBtn.addEventListener('click', () => {
   window.location.href = 'http://localhost:3500/admin/dashboard/category-create';
   document.querySelector('#formMode').value = 'create';
-
-  // document.querySelector('#create-category').style.display = 'block'
-  // document.querySelector('.subcategory-container').style.display = 'none'
-  // document.querySelector('#create-category .main-content').style.display = 'block'
-  // // document.querySelector('#create-category #createCategoryForm').style.display = 'flex'
-  // document.querySelector('#create-category #createCategoryForm .section').style.display = 'block'
-  // document.querySelector('.cat-container').style.margin = '0'
-  // document.querySelector('.container ').style.height = '175vh'
-
-
 })
 // creating category
 // Reset Form Functionality
@@ -1041,9 +1054,6 @@ createForm.addEventListener("submit", async (event) => {
   else {
     console.log('image is required')
   }
-
-
-
 
   // Append main image
   if (mainImageFile) {
@@ -1560,7 +1570,9 @@ async function ProductDeleteAction(productToDelete) {
   });
   if (response.ok) {
     console.log('Product deleted successfully');
+    alert('Product deleted successfully')
   } else {
     console.log('Error deleting product');
+    alert('Error deleting product')
   }
 }
